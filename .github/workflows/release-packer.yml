@@ -35,7 +35,7 @@ jobs:
         working-directory: packer
 
       - name: Run `packer build`
-        run: packer build -var accelerator=tcg ubuntu.pkr.hcl
+        run: packer build -var-file "$(uname -ms | tr ' ' '-')-host.hcl" ubuntu.pkr.hcl
         working-directory: packer
         env:
           PACKER_LOG: 1

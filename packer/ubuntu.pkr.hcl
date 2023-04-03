@@ -136,7 +136,7 @@ source "qemu" "vm" {
   vnc_port_min     = 5990
   headless         = var.headless
   communicator     = "ssh"
-  ssh_timeout      = var.packer_log == "1" ? "35m" : "20m"
+  ssh_timeout      = var.packer_log == "1" ? "40m" : "25m"
   ssh_password     = var.ssh_password
   ssh_username     = var.ssh_username
   qemu_binary      = var.qemu_binary
