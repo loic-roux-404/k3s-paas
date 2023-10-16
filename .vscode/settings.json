@@ -6,6 +6,8 @@
         ],
         "vs-kubernetes.kubeconfig": "/Users/loic/.kube/config"
     },
+    "nix.enableLanguageServer": true, // Enable LSP.
+    "nix.serverPath": "nil", 
     "ltex.language": "en",
     "ltex.dictionary": {
         "en": [

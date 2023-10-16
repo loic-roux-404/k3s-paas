@@ -8,3 +8,6 @@ charts/**/*.tgz
 site
 # helm charts index file
 index.yaml
+*.qcow2
+.direnv
+result
