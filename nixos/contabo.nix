@@ -1,8 +1,10 @@
 { lib, ... }:
 {
-  boot.loader.efi.canTouchEfiVariables = lib.mkForce false;
+  # boot.loader.grub = {
+  #   efiSupport = true;
+  #   efiInstallAsRemovable = true;
+  #   device = "nodev";
+  # };
 
-  # May be needed for some systems
-  # boot.loader.systemd-boot.enable = lib.mkForce false;
-  # boot.loader.grub.enable = true;
+  boot.initrd.kernelModules = lib.mkForce ["dm-snapshot"];
 }

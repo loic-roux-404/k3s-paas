@@ -1,36 +1,49 @@
 # K3s PaaS
-```bash
-echo 'experimental-features = nix-command flakes' | sudo tee -a /etc/nix/nix.conf
-
-```
 
 - [Documentation](https://loic-roux-404.github.io/k3s-paas/)
 - [Original tutorial (FR)](https://github.com/esgi-lyon/paas-tutorial/blob/main/docs/index.md)
 
-
 ## New Nix system (beta)
 
-Docker runtime is required, tested on :
-- Rancher
+### Setup (Darwin)
 
-
-Build linux image with nixos flakes
-
-Qemu :
+Boot the builder :
 
 ```bash
-docker run -it -v $(pwd):/data -v $PWD/docker/nix:/etc/nix -w/data \
-    --privileged nixos/nix:2.18.1 nix build .#qcow
+nix build .#darwinConfigurations.builder.system && \
+result/sw/bin/darwin-rebuild switch --flake .#builder
+
 ```
 
-Docker :
+You will probably need : 
 
 ```bash
-docker run -it -v $(pwd):/data -v $PWD/docker/nix:/etc/nix -w/data \
-    --privileged nixos/nix:2.18.1 nix build .#docker
+sudo chown $USER:staff /etc/nix/builder_ed25519`
+
+```
+
+### Build vm
+
+```bash
+nix build .#nixosConfigurations.default --system 'aarch64-linux' --max-jobs 8 --refresh
 ```
 
 ## Test nix Os vm
+
+## Qemu
+
+> Need to adjust binaries by removing /nix/store prefix because commands of this script are linux builds.
+
+```bash
+QEMU_NET_OPTS="hostfwd=tcp::2222-:22," PATH="$PATH:$(dirname $(which readlink))" ./result/bin/run-k3s-paas-vm
+```
+
+In fish : 
+
+``fish
+set QEMU_NET_OPTS "hostfwd=tcp::2222-:22,"
+./result/bin/run-k3s-paas-vm
+```
 
 ### Docker
 

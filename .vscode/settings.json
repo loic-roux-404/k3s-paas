@@ -15,5 +15,6 @@
             "precomputed",
             "subproblem"
         ]
-    }
+    },
+    "nixEnvSelector.nixFile": "${workspaceRoot}/flake.nix"
 }

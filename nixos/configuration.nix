@@ -6,30 +6,22 @@
 }: {
   imports = [ "${builtins.toString ./.}/k3s_paas.nix"];
 
-  system = {
-    stateVersion = lib.version;
-  };
+  boot.loader.systemd-boot.consoleMode = "0";
+  boot.kernelPackages = pkgs.linuxPackages_latest;
 
-  fileSystems = {
-    "/" = {
-      device = "/dev/disk/by-label/nixos";
-      fsType = "ext4";
-    };
-    "/boot" = {
-      device = "/dev/disk/by-label/boot";
-      fsType = "vfat";
-    };
-  };
+  system.stateVersion = "23.11";
 
   time = {
     timeZone = lib.mkForce "Europe/Paris";
   };
 
+  i18n.defaultLocale = "en_US.UTF-8";
+
   services = {
     openssh = {
       enable = true;
       settings = {
-        PasswordAuthentication = lib.mkForce true;
+        PasswordAuthentication = lib.mkForce false;
         PermitRootLogin = "no";
       };
     };
@@ -51,6 +43,7 @@
   };
 
   networking = {
+    hostName = "k3s-paas";
     firewall = {
       enable = true;
       allowedTCPPorts = lib.mkForce [80 443 22 6443];
@@ -64,7 +57,6 @@
       pkgs.ipset
       pkgs.nftables
       pkgs.iptables
-      pkgs.tmux
       pkgs.htop
       pkgs.wget
       pkgs.k3s
@@ -73,19 +65,19 @@
     ];
   };
 
+  security.sudo.wheelNeedsPassword = false;
+
   users = {
-    mutableUsers = false;
+    allowNoPasswordLogin = true;
     users = {
-      root = {
-        hashedPassword = lib.mkForce config.k3s_paas.root.password;
-      };
-      ${config.k3s_paas.user.name} = {
+      admin = {
         isNormalUser = true;
-        hashedPassword = config.k3s_paas.user.password;
         extraGroups = [ "adm" "cdrom" "dip" "plugdev" "sudo"];
         openssh = {
           authorizedKeys = {
-            keys = [];
+            keys = [
+              config.k3s_paas.user.key
+            ];
           };
         };
       };
@@ -116,5 +108,11 @@
       dates = "weekly";
       options = "--delete-older-than 30d";
     };
+
+    extraOptions = ''
+      experimental-features = nix-command flakes
+      keep-outputs = true
+      keep-derivations = true
+    '';
   };
 }

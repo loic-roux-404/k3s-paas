@@ -2,22 +2,17 @@
 
 {
   options.k3s_paas = {
-    root.password = lib.mkOption {
-      default = "$6$zizou$reVO3q7LFsUq.GT5P5pYFFcpxCo7eTRT5yJTD.gVoOy/FSzHEtXdofvZ7E04Rej.jiQHKaWJB0Qob5FHov1WU/";
-      type = lib.types.str;
-      description = "Root password";
-    };
 
     user.name = lib.mkOption {
-      default = "admin";
+      default = "zizou";
       type = lib.types.str;
       description = "Nom d'utilisateur pour k3s_paas.";
     };
 
-    user.password = lib.mkOption {
-      default = "$6$zizou$reVO3q7LFsUq.GT5P5pYFFcpxCo7eTRT5yJTD.gVoOy/FSzHEtXdofvZ7E04Rej.jiQHKaWJB0Qob5FHov1WU/";
+    user.key = lib.mkOption {
+      default = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJnlabjQuAAy22LB5VZe2fwIMX3h8p+azwncd8bKwS0B zizou";
       type = lib.types.str;
-      description = "Mot de passe de l'utilisateur pour k3s_paas.";
+      description = "SSH public key pour k3s_paas.";
     };
 
     dex.dex_hostname = lib.mkOption {

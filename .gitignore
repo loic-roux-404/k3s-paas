@@ -11,3 +11,5 @@ index.yaml
 *.qcow2
 .direnv
 result
+core
+keys

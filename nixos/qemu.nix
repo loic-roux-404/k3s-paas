@@ -1,45 +1,21 @@
-{ modulesPath, lib, pkgs, ... }:
+{ modulesPath, pkgs, lib, ... }:
 {
   imports = [
-    "${modulesPath}/profiles/qemu-guest.nix"
+    "${modulesPath}/installer/scan/not-detected.nix"
   ];
 
-  networking.interfaces.enp0s10.useDHCP = true;
+  boot.initrd.availableKernelModules = [ "uhci_hcd" "ahci" "xhci_pci" "nvme" "usbhid" "sr_mod" ];
+  boot.initrd.kernelModules = [ ];
+  boot.kernelModules = [ ];
+  boot.extraModulePackages = [ ];
 
-  boot = {
-    kernelPackages = pkgs.linuxPackages_latest;
-    initrd = {
-      availableKernelModules = lib.mkForce [ "xhci_pci" "uhci_hcd" "virtio_pci" "usbhid" "usb_storage" "sr_mod" ];
-      kernelModules = [ ];
+  fileSystems."/boot" =
+    { device = "/dev/disk/by-label/boot";
+      fsType = "vfat";
     };
-    kernelModules = [ ];
-    extraModulePackages = [ ];
-    loader = {
-      grub = {
-        enable = lib.mkForce false;
-        efiInstallAsRemovable = lib.mkForce false;
-      };
-      systemd-boot = {
-        enable = true;
-        consoleMode = "0";
-      };
-      efi = {
-        canTouchEfiVariables = true;
-      };
-    };
-  };
 
-  services = {
-    spice-vdagentd = {
-      enable = true;
-    };
-  };
-
-  environment = {
-    variables = {
-      LIBGL_ALWAYS_SOFTWARE = "1";
-    };
-  };
+  # For mac m1
+  networking.interfaces.enp0s5.useDHCP = true;
 
   swapDevices = [ ];
 }
