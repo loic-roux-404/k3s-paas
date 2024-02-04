@@ -10,7 +10,7 @@
     };
 
     user.key = lib.mkOption {
-      default = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJnlabjQuAAy22LB5VZe2fwIMX3h8p+azwncd8bKwS0B zizou";
+      default = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIC94/4uRn429xMGLFWZMyJWlhb5D0L3EoO8HxzN4q1ps loic@Windows-8-Phone.local";
       type = lib.types.str;
       description = "SSH public key pour k3s_paas.";
     };

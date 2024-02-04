@@ -164,21 +164,20 @@
           default = pkgs.mkShell {
             name = "default";
             packages = attrValues {
-              inherit (pkgs) terraform docker-client kubectl nil coreutils e2fsprogs;
+              inherit (pkgs) terraform kubectl nil waypoint pebble ansible;
+            };
+          };
+
+          builder = pkgs.mkShell {
+            name = "builder";
+            packages = attrValues {
+              inherit (pkgs) nil coreutils e2fsprogs;
             };
             shellHook = (if pkgs.system == "aarch64-darwin" then ''
               nix build .#darwinConfigurations.k3s-paas-host.system
               ./result/sw/bin/darwin-rebuild switch --flake .#k3s-paas-host
             '' else "");
           };
-
-          # python = pkgs.mkShell {
-          #   name = "python310";
-          #   inputsFrom = attrValues {
-          #     inherit (pkgs.pkgs-master.python310Packages) black isort;
-          #     inherit (pkgs) poetry python310 pyright;
-          #   };
-          # };
         };
       # }}}
     });

@@ -7,19 +7,23 @@
 
 ### Setup (Darwin)
 
-Boot the builder :
+If you don't have these experimental features enabled, you can enable them with :
 
 ```bash
-nix build .#darwinConfigurations.builder.system && \
-result/sw/bin/darwin-rebuild switch --flake .#builder
+echo 'extra-experimental-features = nix-command flakes' | sudo tee /etc/nix/nix.conf
 
 ```
 
-You will probably need : 
+Boot the builder :
 
 ```bash
-sudo chown $USER:staff /etc/nix/builder_ed25519`
+nix develop .#builder --command zsh
+```
 
+To uninstall the builder inside darwin env :
+
+```bash
+./result/sw/bin/darwin-uninstaller
 ```
 
 ### Build vm
@@ -28,37 +32,29 @@ sudo chown $USER:staff /etc/nix/builder_ed25519`
 nix build .#nixosConfigurations.default --system 'aarch64-linux' --max-jobs 8 --refresh
 ```
 
-Patch result for darwin binaries compatibility :
+Patch result for darwin compatibility :
+
+> Note : binaries in this script are linux builds.
 
 ```bash
-sudo sed -i -E 's|/nix/store[^ ]*bin/||g; /^export PATH/d; s|bash|/usr/bin/env bash|g; s/kvm/hvf/g' result/bin/run-k3s-paas-vm
+sudo sed -i -E 's|/nix/store[^ ]*bin/||g; /^export PATH/d; s|bash|/usr/bin/env bash|g; s/kvm/hvf/g; s/-nographic[^ ]*-serial mon:stdio/-daemonize/g' result/bin/run-k3s-paas-vm
 ```
 
-## Test nix Os vm
-
-## Qemu
-
-> Need to adjust binaries by removing /nix/store prefix because commands of this script are linux builds.
+## Start Machine
 
 ```bash
 QEMU_NET_OPTS="hostfwd=tcp::2222-:22," ./result/bin/run-k3s-paas-vm
 ```
 
-### Docker
+### Terraform local setup
 
-- TODO
-
-### Libvirt (no network)
-
-1. In a first shell start libvirt with :
+Switch shell to ops environment with all required tools :
 
 ```bash
-libvirtd -d
+nix develop .#ops
 ```
 
-Network (optional) : `virsh -c qemu:///session net-start default`
-
-1. Then
+Bootstrap terraform :
 
 ```bash
 terraform init

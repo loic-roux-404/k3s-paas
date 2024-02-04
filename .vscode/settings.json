@@ -16,5 +16,5 @@
             "subproblem"
         ]
     },
-    "nixEnvSelector.nixFile": "${workspaceRoot}/flake.nix"
+    "nixEnvSelector.nixFile": "${workspaceFolder}/shell.nix"
 }

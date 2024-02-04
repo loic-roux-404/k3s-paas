@@ -1,52 +1,25 @@
 locals {
-  libvirt_root = "${abspath(pathexpand("~"))}/.cache"
+  cert_manager_acme_url = var.letsencrypt_envs[var.cert_manager_letsencrypt_env]
+  cert_manager_acme_ca_url = var.letsencrypt_envs_ca_certs[var.cert_manager_letsencrypt_env]
+  ingress_hosts_internals = [local.dex_hostname, var.waypoint_hostname]
+  waypoint_internal_acme_host = "acme-internal.${var.waypoint_base_domain}"
+  dex_hostname = "dex.${var.waypoint_base_domain}"
+  waypoint_hostname = "waypoint.${var.waypoint_base_domain}"
+  api_waypoint_hostname = "api.${local.waypoint_hostname}"
 }
 
-provider "libvirt" {
-  uri = "qemu:///session?root=${local.libvirt_root}&socket=${local.libvirt_root}/libvirt/libvirt-sock"
+module "qemu_instance" {
+  source = "./qemu-nixos-vm"
+  qemu_working_dir = "${path.module}/.."
 }
 
-resource "libvirt_pool" "default" {
-  name = "default"
-  type = "dir"
-  path = "${abspath(pathexpand("~"))}/.cache/libvirt/images"
+module "pebble" {
+  source = "./mocks/pebble"
 }
 
-resource "libvirt_volume" "qcow2_disk" {
-  name   = "test_disk.qcow2"
-  pool   = libvirt_pool.default.name
-  source = var.qcow2_image_path
-  format = "qcow2"
-}
-
-resource "libvirt_domain" "domain-qcow2-test" {
-  name   = "test-vm"
-  memory = "1024"
-  vcpu   = 1
-
-  disk {
-    volume_id = libvirt_volume.qcow2_disk.id
-  }
-
-  console {
-    type        = "pty"
-    target_port = "0"
-    target_type = "serial"
-  }
-
-  console {
-    type        = "pty"
-    target_type = "virtio"
-    target_port = "1"
-  }
-
-  # graphics {
-  #   type        = "spice"
-  #   listen_type = "address"
-  #   autoport    = true
-  # }
-
-  xml {
-    xslt = file("${path.module}/only-qemu.xsl")
-  }
+data "http" "waypoint_internal_acme_ca" {
+  url = local.cert_manager_acme_ca_url
+  count = local.cert_manager_acme_ca_url != null ? 1 : 0
+  insecure = var.cert_manager_letsencrypt_env == "local"
+  depends_on = [ module.pebble ]
 }

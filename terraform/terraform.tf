@@ -1,8 +1,24 @@
 terraform {
   required_providers {
-    libvirt = {
-      source = "dmacvicar/libvirt"
-      version = "0.7.1" 
+    helm = {
+      source  = "hashicorp/helm"
+      version = "2.12.1"
     }
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = "2.25.2"
+    }
+    # contabo = {
+    #   source = "contabo/contabo"
+    #   version = ">= 0.1.23"
+    # }
   }
+}
+
+provider "kubernetes" {
+  # Configuration options
+}
+
+provider "helm" {
+  # Configuration options
 }

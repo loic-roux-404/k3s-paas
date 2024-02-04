@@ -86,6 +86,7 @@
       btop
       wget
       k3s
+      kubectl
       waypoint
       tailscale
     ];
