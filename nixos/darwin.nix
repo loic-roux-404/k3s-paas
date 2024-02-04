@@ -8,8 +8,8 @@
   };
   nix.settings = {
     trusted-users = [ "staff" "admin" "nixbld"];
-    keep-derivations = true;
-    keep-outputs = true;
+    keep-derivations = false;
+    keep-outputs = false;
     # https://github.com/NixOS/nix/issues/7273
     auto-optimise-store = false;
   };

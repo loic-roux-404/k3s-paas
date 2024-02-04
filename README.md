@@ -28,6 +28,12 @@ sudo chown $USER:staff /etc/nix/builder_ed25519`
 nix build .#nixosConfigurations.default --system 'aarch64-linux' --max-jobs 8 --refresh
 ```
 
+Patch result for darwin binaries compatibility :
+
+```bash
+sudo sed -i -E 's|/nix/store[^ ]*bin/||g; /^export PATH/d; s|bash|/usr/bin/env bash|g; s/kvm/hvf/g' result/bin/run-k3s-paas-vm
+```
+
 ## Test nix Os vm
 
 ## Qemu
@@ -35,14 +41,7 @@ nix build .#nixosConfigurations.default --system 'aarch64-linux' --max-jobs 8 --
 > Need to adjust binaries by removing /nix/store prefix because commands of this script are linux builds.
 
 ```bash
-QEMU_NET_OPTS="hostfwd=tcp::2222-:22," PATH="$PATH:$(dirname $(which readlink))" ./result/bin/run-k3s-paas-vm
-```
-
-In fish : 
-
-``fish
-set QEMU_NET_OPTS "hostfwd=tcp::2222-:22,"
-./result/bin/run-k3s-paas-vm
+QEMU_NET_OPTS="hostfwd=tcp::2222-:22," ./result/bin/run-k3s-paas-vm
 ```
 
 ### Docker

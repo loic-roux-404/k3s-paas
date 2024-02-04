@@ -14,8 +14,5 @@
       fsType = "vfat";
     };
 
-  # For mac m1
-  networking.interfaces.enp0s5.useDHCP = true;
-
   swapDevices = [ ];
 }

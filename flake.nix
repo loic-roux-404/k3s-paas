@@ -128,8 +128,8 @@
         };
 
         qemu-aarch64-darwin = self.nixosConfigurations.qemu-aarch64.override {
-          specialArgs = {
-            vmPkgs = inputs.nixpkgs-stable.legacyPackages.aarch64-darwin;
+          specialArgs = { 
+            vmPkgs = import inputs.nixpkgs-stable (nixpkgsDefaults // { system = "aarch64-darwin"; });
           };
           modules = attrValues self.nixosModules ++ [
             ./nixos/aarch64-darwin-vm.nix
@@ -148,7 +148,6 @@
           system = "aarch64-linux";
         };
       };
-      # }}}
 
     } // flake-utils.lib.eachDefaultSystem (system: {
       # Re-export `nixpkgs-unstable` with overlays.
