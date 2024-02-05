@@ -17,7 +17,13 @@ echo 'extra-experimental-features = nix-command flakes' | sudo tee /etc/nix/nix.
 Boot the builder :
 
 ```bash
-nix develop .#builder --command zsh
+nix develop .#builder
+```
+
+This starts dnsmasq in background, you may need to force a refresh of dns cache :
+
+```bash
+sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder
 ```
 
 To uninstall the builder inside darwin env :
@@ -37,7 +43,7 @@ Patch result for darwin compatibility :
 > Note : binaries in this script are linux builds.
 
 ```bash
-sudo sed -i -E 's|/nix/store[^ ]*bin/||g; /^export PATH/d; s|bash|/usr/bin/env bash|g; s/kvm/hvf/g; s/-nographic[^ ]*-serial mon:stdio/-daemonize/g' result/bin/run-k3s-paas-vm
+sudo sed -i -E 's|/nix/store[^ ]*bin/||g; /^export PATH/d; s|\wbash|/usr/bin/env bash|g; s/kvm/hvf/g; s/-nographic[^ ]*-serial mon:stdio/-daemonize/g' result/bin/run-k3s-paas-vm
 ```
 
 ## Start Machine

@@ -1,6 +1,6 @@
 galaxy_info:
   author: loic-roux-404
-  namespace: k3s_paas
+  namespace: k3s-paas
   description: waypoint deployment
   role_name: waypoint
 

@@ -3,8 +3,12 @@
   lib,
   pkgs,
   ...
-}: {
-  imports = [ "${builtins.toString ./.}/k3s_paas.nix"];
+}: 
+
+let dex_hostname = "${config.k3s-paas.dex.scheme}://dex.${config.k3s-paas.domain}";
+
+in {
+  imports = [ "${builtins.toString ./.}/k3s-paas.nix"];
 
   boot.loader.systemd-boot.consoleMode = "0";
   boot.kernelPackages = pkgs.linuxPackages_latest;
@@ -18,7 +22,7 @@
   i18n.defaultLocale = "en_US.UTF-8";
 
   services = {
-    getty.autologinUser = config.k3s_paas.user.name;
+    getty.autologinUser = config.k3s-paas.user.name;
     openssh = {
       enable = true;
       settings = {
@@ -37,8 +41,8 @@
       role = "server";
       extraFlags = toString [
         "--kube-apiserver-arg authorization-mode=Node,RBAC"
-        "--kube-apiserver-arg oidc-issuer-url=${config.k3s_paas.dex.dex_hostname}"
-        "--kube-apiserver-arg oidc-client-id=${config.k3s_paas.dex.dex_client_id}"
+        "--kube-apiserver-arg oidc-issuer-url=${dex_hostname}"
+        "--kube-apiserver-arg oidc-client-id=${config.k3s-paas.dex.dex_client_id}"
         "--kube-apiserver-arg oidc-username-claim=email"
         "--kube-apiserver-arg oidc-groups-claim=groups"
         "--disable=traefik"
@@ -65,7 +69,6 @@
 
   environment = {
     sessionVariables = {
-      COLORTERM = "truecolor";
       TERM = "xterm-256color";
     };
     shells = [ pkgs.bash pkgs.fish ];
@@ -99,13 +102,13 @@
     defaultUserShell = pkgs.fish;
     allowNoPasswordLogin = true;
     users = {
-      ${config.k3s_paas.user.name} = {
+      ${config.k3s-paas.user.name} = {
         isNormalUser = true;
         extraGroups = [ "wheel" "networkmanager" ];
         openssh = {
           authorizedKeys = {
             keys = [
-              config.k3s_paas.user.key
+              config.k3s-paas.user.key
             ];
           };
         };

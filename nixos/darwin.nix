@@ -1,11 +1,20 @@
-{ pkgs, lib, ... }:
+{ pkgs, lib, config, ... }:
 {
+  imports = [ "${builtins.toString ./.}/k3s-paas.nix"];
+
   launchd.daemons.linux-builder = {
     serviceConfig = {
       StandardOutPath = "/var/log/darwin-builder.log";
       StandardErrorPath = "/var/log/darwin-builder.log";
     };
   };
+  services.dnsmasq = {
+    enable = true;
+    addresses = {
+      ${config.k3s-paas.dns.name} = config.k3s-paas.dns.dest-ip;
+    };
+  };
+  environment.etc.${config.k3s-paas.dns.name}.text = "nameserver ${config.k3s-paas.dns.dest-ip}";
   nix.settings = {
     trusted-users = [ "staff" "admin" "nixbld"];
     keep-derivations = false;
