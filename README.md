@@ -35,16 +35,9 @@ To uninstall the builder inside darwin env :
 ### Build vm
 
 ```bash
-nix build .#nixosConfigurations.default --system 'aarch64-linux' --max-jobs 8 --refresh
+./scripts/build-vm.sh
 ```
 
-Patch result for darwin compatibility :
-
-> Note : binaries in this script are linux builds.
-
-```bash
-sudo sed -i -E 's|/nix/store[^ ]*bin/||g; /^export PATH/d; s|\wbash|/usr/bin/env bash|g; s/kvm/hvf/g; s/-nographic[^ ]*-serial mon:stdio/-daemonize/g' result/bin/run-k3s-paas-vm
-```
 
 ## Start Machine
 
