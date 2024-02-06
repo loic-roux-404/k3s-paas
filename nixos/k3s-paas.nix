@@ -4,7 +4,7 @@
   options.k3s-paas = {
 
     dns.name = lib.mkOption {
-      default = ".k3s.test";
+      default = "k3s.test";
       type = lib.types.str;
       description = "hostname for k3s-paas";
     };
@@ -27,7 +27,7 @@
       description = "SSH public key for k3s-paas.";
     };
 
-    dex.dex_http_scheme = lib.mkOption {
+    dex.http_scheme = lib.mkOption {
       default = "https";
       type = lib.types.str;
       description = "Http protocol for Dex in k3s-paas.";

@@ -5,7 +5,7 @@
   ...
 }: 
 
-let dex_hostname = "${config.k3s-paas.dex.scheme}://dex.${config.k3s-paas.domain}";
+let dex_hostname = "${config.k3s-paas.dex.http_scheme}://dex.${config.k3s-paas.dns.name}";
 
 in {
   imports = [ "${builtins.toString ./.}/k3s-paas.nix"];
@@ -26,6 +26,7 @@ in {
     openssh = {
       enable = true;
       settings = {
+        X11Forwarding = lib.mkForce true;
         StreamLocalBindUnlink = "yes";
         # Allow forwarding ports to everywhere
         GatewayPorts = "clientspecified";

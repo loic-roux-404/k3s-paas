@@ -11,7 +11,7 @@
   services.dnsmasq = {
     enable = true;
     addresses = {
-      ${config.k3s-paas.dns.name} = config.k3s-paas.dns.dest-ip;
+      ".${config.k3s-paas.dns.name}" = config.k3s-paas.dns.dest-ip;
     };
   };
   environment.etc.${config.k3s-paas.dns.name}.text = "nameserver ${config.k3s-paas.dns.dest-ip}";
