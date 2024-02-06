@@ -7,8 +7,7 @@
     nixpkgs-stable-darwin.url = "github:NixOS/nixpkgs/nixpkgs-23.11-darwin";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
     srvos.url = "github:numtide/srvos";
-    microvm.url = "github:astro/microvm.nix";
-    microvm.inputs.nixpkgs.follows = "srvos/nixpkgs";
+
     # Environment/system management
     darwin.url = "github:LnL7/nix-darwin";
     darwin.inputs.nixpkgs.follows = "srvos/nixpkgs";
@@ -24,7 +23,7 @@
 
   };
 
-  outputs = { self, srvos, darwin, nixos-generators, flake-utils, microvm, ... }@inputs:
+  outputs = { self, srvos, darwin, nixos-generators, flake-utils, ... }@inputs:
     let
       inherit (self.lib) attrValues makeOverridable mkForce optionalAttrs singleton;
       nixpkgsDefaults = {
@@ -107,7 +106,7 @@
 
       # NixOS ----------------------------------------------------------------------------------{{{
       nixosConfigurations = rec {
-        default = qemu-aarch64-darwin;
+        default = qemu-aarch64;
 
         qcow-x86_64-linux = makeOverridable nixos-generators.nixosGenerate {
           system = "x86_64-linux";
@@ -125,25 +124,7 @@
           modules = attrValues self.nixosModules ++ [
             ./nixos/qemu.nix
           ];
-        };
-
-        qemu-aarch64-darwin = inputs.nixpkgs-stable.lib.nixosSystem {
-          specialArgs = { 
-            vmPkgs = import inputs.nixpkgs-stable (nixpkgsDefaults // { system = "aarch64-darwin"; });
-          };
-          modules = attrValues self.nixosModules ++ [
-            microvm.nixosModules.microvm
-            {
-              microvm = "qemu";
-              interfaces = [
-                {
-                  type = "tap";
-                  id = "eth0";
-                  #mac = "02:00:00:00:00:01";
-                }
-              ];
-            }
-          ];
+          format = "vm-nogui";
         };
 
         docker-x86_64-linux = makeOverridable nixos-generators.nixosGenerate {
