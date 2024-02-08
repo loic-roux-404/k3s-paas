@@ -10,8 +10,9 @@ let dex_hostname = "${config.k3s-paas.dex.http_scheme}://dex.${config.k3s-paas.d
 in {
   imports = [ "${builtins.toString ./.}/k3s-paas.nix"];
 
-  boot.loader.systemd-boot.consoleMode = "0";
+  boot.kernelParams = [ "console=ttyS0" "console=tty0" "console=ttyAMA0,115200n8" ];
   boot.kernelPackages = pkgs.linuxPackages_latest;
+  boot.growPartition = true;
 
   system.stateVersion = "23.11";
 
@@ -20,13 +21,16 @@ in {
   };
 
   i18n.defaultLocale = "en_US.UTF-8";
+  console.font = "Lat2-Terminus16";
+  console.keyMap = "fr";
+
+  programs.ssh.package = pkgs.openssh_hpn;
 
   services = {
     getty.autologinUser = config.k3s-paas.user.name;
     openssh = {
       enable = true;
       settings = {
-        X11Forwarding = lib.mkForce true;
         StreamLocalBindUnlink = "yes";
         # Allow forwarding ports to everywhere
         GatewayPorts = "clientspecified";
@@ -66,28 +70,27 @@ in {
     };
   };
 
-  programs.fish.enable = true;
+  programs.bash.enableCompletion = true;
 
   environment = {
-    sessionVariables = {
-      TERM = "xterm-256color";
-    };
-    shells = [ pkgs.bash pkgs.fish ];
+    enableAllTerminfo = true;
+    shells = [ pkgs.bashInteractive ];
     systemPackages = with pkgs; lib.mkForce [
       systemd
-      iproute2
-      bash
+      bashInteractive
       coreutils
+      ncurses
       iconv
-      xterm
+      gawk
       vim
-      fish
-      curl
       gitMinimal
+      openssh_hpn
       ipset
+      iproute2
       nftables
       iptables
       btop
+      curl
       wget
       k3s
       kubectl
@@ -100,7 +103,7 @@ in {
   security.pam.sshAgentAuth.enable = true;
 
   users = {
-    defaultUserShell = pkgs.fish;
+    defaultUserShell = pkgs.bashInteractive;
     allowNoPasswordLogin = true;
     users = {
       ${config.k3s-paas.user.name} = {

@@ -1,4 +1,4 @@
-{ pkgs, lib, config, ... }:
+{ lib, config, ... }:
 {
   imports = [ "${builtins.toString ./.}/k3s-paas.nix"];
 

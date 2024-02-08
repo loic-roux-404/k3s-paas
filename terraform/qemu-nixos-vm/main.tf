@@ -4,6 +4,7 @@ resource "null_resource" "start_qemu" {
       QEMU_OPTS = "-daemonize"
       QEMU_NET_OPTS = "hostfwd=tcp::2222-:22,"
       OBJC_DISABLE_INITIALIZE_FORK_SAFETY = "YES"
+      QEMU_KERNEL_PARAMS = "console=ttyS0"
     }
     working_dir = var.qemu_working_dir
     command = "./result/bin/run-k3s-paas-vm"
@@ -12,45 +13,48 @@ resource "null_resource" "start_qemu" {
 
 resource "null_resource" "stop_qemu" {
   provisioner "local-exec" {
-    command = "ps aux | grep qemu | grep run-k3s-paas-vm | grep -v grep | awk '{print $2}' | xargs kill || true"
+    command = "ps aux | grep qemu | grep nixos-system-k3s-paas | grep -v grep | awk '{print $2}' | xargs kill"
     when = destroy
   }
 }
 
 locals {
   private_key = trimspace(file(pathexpand(var.ssh_connection.private_key)))
-  interface_regexp = "inet [0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}"
 }
 
 resource "null_resource" "recover_ip" {
-
   provisioner "remote-exec" {
-
     connection {
       type     = "ssh"
       user     = var.ssh_connection.user
       host     = "localhost"
       private_key = local.private_key
+      port = "2222"
+      agent = false
     }
 
-    inline = [ 
-      "ip -o -4 a s | grep ${var.qemu_network_interface} | grep -E -o '${local.interface_regexp}' | cut -d' ' -f2"
-    ]
+    inline = [ "echo 'Machine Started'" ]
   }
 }
 
-# resource "null_resource" "save_ip" {
-#   triggers = {
-#     always_run = "${timestamp()}"
-#   }
+data "external" "ip" {
+  depends_on = [ null_resource.recover_ip ]
+  program = ["bash", "${path.module}/info-scripts/ip.sh"]
+  query = {
+    ssh_connection_user = var.ssh_connection.user
+    ssh_connection_private_key = var.ssh_connection.private_key
+  }
+}
 
-#   provisioner "local-exec" {
-#     command = "echo ${} > /tmp/ip-k3s-paas.txt"
-#   }
-# }
+data "external" "host_ip" {
+  program = ["bash", "${path.module}/info-scripts/host_ip.sh"]
+}
 
-# TODO wait for the VM to be up and running
-# find ip with an easy ssh command
 output "ip" {
-  value = null_resource.recover_ip
+  depends_on = [ data.external.ip ]
+  value = data.external.ip.result
+}
+
+output "host_ip" {
+  value = data.external.host_ip.result
 }

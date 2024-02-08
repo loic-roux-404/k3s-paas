@@ -4,14 +4,10 @@ resource "kubernetes_namespace" "cert-manager" {
   }
 }
 
-data "helm_repository" "jetstack" {
-  name = "jetstack"
-  url  = "https://charts.jetstack.io"
-}
 
 resource "helm_release" "cert_manager" {
   name       = "cert-manager"
-  repository = data.helm_repository.jetstack.metadata[0].name
+  repository = "https://charts.jetstack.io"
   chart      = "cert-manager"
   namespace  = kubernetes_namespace.cert-manager.metadata[0].name
 
@@ -51,15 +47,10 @@ resource "kubernetes_manifest" "issuer" {
   }
 }
 
-data "helm_repository" "emberstack" {
-  name = "emberstack"
-  url  = "https://emberstack.github.io/helm-charts"
-}
-
 resource "helm_release" "reflector" {
   name       = "reflector"
   namespace  = "kube-system"
-  repository = data.helm_repository.emberstack.metadata.0.name
+  repository = "https://emberstack.github.io/helm-charts"
   chart      = "reflector"
   version    = "7.0.151"
 
@@ -68,7 +59,6 @@ resource "helm_release" "reflector" {
     value = var.cert_manager_namespace
   }
 
-  depends_on = [data.helm_repository.emberstack]
 }
 
 resource "kubernetes_config_map" "acme_internal_root_ca" {

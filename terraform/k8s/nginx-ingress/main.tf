@@ -1,10 +1,5 @@
-data "helm_repository" "bitnami" {
-  name = "bitnami"
-  url  = "https://charts.bitnami.com/bitnami"
-}
-
 resource "helm_release" "nginx_ingress" {
-  repository = data.helm_repository.bitnami.metadata.0.name
+  repository =  "https://charts.bitnami.com/bitnami"
   name       = "ingress-nginx"
   namespace  = "kube-system"
   chart      = "bitnami/nginx-ingress-controller"
@@ -34,10 +29,6 @@ resource "helm_release" "nginx_ingress" {
     name  = "defaultBackend.service.ports.http"
     value = "8080"
   }
-
-  depends_on = [
-    kubernetes_manifest.nginx_ingress,
-  ]
 }
 
 data "kubernetes_service" "ingress_service" {
@@ -46,7 +37,7 @@ data "kubernetes_service" "ingress_service" {
     namespace = "kube-system"
   }
   depends_on = [
-    kubernetes_manifest.nginx_ingress,
+    helm_release.nginx_ingress,
   ]
 }
 
@@ -67,32 +58,32 @@ output "waypoint_ingress_controller_ip" {
   value = local.waypoint_ingress_controller_ip
 }
 
-# resource "kubernetes_config_map" "coredns-custom" {
-#   count = var.waypoint_internal_acme_network_ip != null ? 1 : 0
-#   metadata {
-#     name      = "coredns-custom"
-#     namespace = "kube-system"
-#   }
+resource "kubernetes_config_map" "coredns-custom" {
+  count = var.waypoint_internal_acme_network_ip != null ? 1 : 0
+  metadata {
+    name      = "coredns-custom"
+    namespace = "kube-system"
+  }
 
-#   data = {
-#     "ingress-hosts.server" = <<EOF
-#     ${local.ingress_hosts_internals_joined} {
-#       hosts {
-#         ${local.waypoint_ingress_controller_ip} ${local.ingress_hosts_internals_joined}
-#         fallthrough
-#       }
-#       whoami
-#     }
-#     EOF
+  data = {
+    "ingress-hosts.server" = <<EOF
+    ${local.ingress_hosts_internals_joined} {
+      hosts {
+        ${local.waypoint_ingress_controller_ip} ${local.ingress_hosts_internals_joined}
+        fallthrough
+      }
+      whoami
+    }
+    EOF
 
-#     "acme-internal.server" = <<EOF
-#     ${var.waypoint_internal_acme_host} {
-#       hosts {
-#         ${var.waypoint_internal_acme_network_ip} ${var.waypoint_internal_acme_host}
-#         fallthrough
-#       }
-#       whoami
-#     }
-#     EOF
-#   }
-# }
+    "acme-internal.server" = <<EOF
+    ${var.waypoint_internal_acme_host} {
+      hosts {
+        ${var.waypoint_internal_acme_network_ip} ${var.waypoint_internal_acme_host}
+        fallthrough
+      }
+      whoami
+    }
+    EOF
+  }
+}

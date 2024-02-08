@@ -1,7 +1,7 @@
 resource "helm_release" "dex" {
-  repository = data.helm_repository.dexidp.metadata.0.name
+  repository = "https://charts.dexidp.io"
   name       = "dex"
-  namespace  = "kube-system"
+  namespace  = var.dex_namespace
   chart      = "dex"
   
   values = [

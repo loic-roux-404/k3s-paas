@@ -84,6 +84,9 @@
 
         # My Apple Silicon macOS laptop config
         k3s-paas-host = makeOverridable self.lib.mkDarwinSystem ({
+          specialArgs = {
+            stablePkgs = (import inputs.nixpkgs-stable {system = "aarch64-darwin";});
+          };
           modules = attrValues self.darwinModules ++ singleton {
             nixpkgs = nixpkgsDefaults;
             nix.registry.my.flake = inputs.self;

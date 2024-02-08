@@ -38,20 +38,13 @@ To uninstall the builder inside darwin env :
 ./scripts/build-vm.sh
 ```
 
-
-## Start Machine
+Start Machine without terraform :
 
 ```bash
 QEMU_NET_OPTS="hostfwd=tcp::2222-:22," ./result/bin/run-k3s-paas-vm
 ```
 
 ### Terraform local setup
-
-Switch shell to ops environment with all required tools :
-
-```bash
-nix develop .#ops
-```
 
 Bootstrap terraform :
 

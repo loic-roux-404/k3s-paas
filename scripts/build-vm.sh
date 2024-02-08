@@ -4,5 +4,4 @@ nix develop .#builder --command nix build .#nixosConfigurations.default --system
 
 sudo sed -i -E 's|/nix/store[^ ]*bin/||g; /^export PATH/d;
     s|!\sbash|! /usr/bin/env bash|g; s/kvm/hvf/g;
-    s/-nographic[^ ]*-serial mon:stdio/-daemonize/g' result/bin/run-k3s-paas-vm
-    
+    s/-nographic/-daemonize/g; s/-serial mon:stdio//g' result/bin/run-k3s-paas-vm
