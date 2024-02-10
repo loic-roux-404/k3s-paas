@@ -1,5 +1,5 @@
 k3s_disable_services = ["traefik", "servicelb"]
-metallb_ip_range = "172.29.0.20-172.29.0.50"
+#metallb_ip_range = "172.29.0.20-172.29.0.50"
 
 dex_github_orgs = [
   {

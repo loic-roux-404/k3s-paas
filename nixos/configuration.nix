@@ -10,7 +10,7 @@ let dex_hostname = "${config.k3s-paas.dex.http_scheme}://dex.${config.k3s-paas.d
 in {
   imports = [ "${builtins.toString ./.}/k3s-paas.nix"];
 
-  boot.kernelParams = [ "console=ttyS0" "console=tty0" "console=ttyAMA0,115200n8" ];
+  boot.kernelParams = [];
   boot.kernelPackages = pkgs.linuxPackages_latest;
   boot.growPartition = true;
 
@@ -74,10 +74,11 @@ in {
 
   environment = {
     enableAllTerminfo = true;
-    shells = [ pkgs.bashInteractive ];
+    shells = [ pkgs.bashInteractive pkgs.bash ];
     systemPackages = with pkgs; lib.mkForce [
       systemd
       bashInteractive
+      bash
       coreutils
       ncurses
       iconv

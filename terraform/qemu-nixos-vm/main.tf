@@ -1,8 +1,8 @@
 resource "null_resource" "start_qemu" {
   provisioner "local-exec" {
     environment = {
-      QEMU_OPTS = "-daemonize"
-      QEMU_NET_OPTS = "hostfwd=tcp::2222-:22,"
+      QEMU_OPTS = "-daemonize -nic vmnet-bridged,ifname=br0"
+      QEMU_NET_OPTS = "hostfwd=tcp::2222-:22,hostfwd=tcp::6443-:6443,hostfwd=tcp::443-:443,hostfwd=tcp::80-:80"
       OBJC_DISABLE_INITIALIZE_FORK_SAFETY = "YES"
       QEMU_KERNEL_PARAMS = "console=ttyS0"
     }
@@ -39,7 +39,7 @@ resource "null_resource" "recover_ip" {
 
 data "external" "ip" {
   depends_on = [ null_resource.recover_ip ]
-  program = ["bash", "${path.module}/info-scripts/ip.sh"]
+  program = ["bash", "./${path.module}/info-scripts/ip.sh"]
   query = {
     ssh_connection_user = var.ssh_connection.user
     ssh_connection_private_key = var.ssh_connection.private_key
@@ -47,7 +47,7 @@ data "external" "ip" {
 }
 
 data "external" "host_ip" {
-  program = ["bash", "${path.module}/info-scripts/host_ip.sh"]
+  program = ["bash", "./${path.module}/info-scripts/host_ip.sh"]
 }
 
 output "ip" {

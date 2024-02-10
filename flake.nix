@@ -158,7 +158,7 @@
           default = pkgs.mkShell {
             name = "default";
             packages = attrValues {
-              inherit (pkgs) terraform kubectl nil waypoint pebble ansible;
+              inherit (pkgs) terraform kubectl nil waypoint pebble jq;
             };
           };
 

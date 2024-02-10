@@ -7,13 +7,7 @@ resource "kubernetes_namespace" "metallb_system" {
    }
 }
 
-provider "kubernetes-alpha" {
-  config_path = "/etc/rancher/k3s/k3s.yaml"
-}
-
 resource "kubernetes_manifest" "metallb_ip_address_pool" {
-   provider = kubernetes-alpha
-
    manifest = {
       apiVersion = "metallb.io/v1beta1"
       kind = "IPAddressPool"
@@ -28,8 +22,6 @@ resource "kubernetes_manifest" "metallb_ip_address_pool" {
 }
 
 resource "kubernetes_manifest" "metallb_l2_advertisement" {
-   provider = kubernetes-alpha
-
    manifest = {
       apiVersion = "metallb.io/v1beta1"
       kind = "L2Advertisement"
@@ -40,16 +32,21 @@ resource "kubernetes_manifest" "metallb_l2_advertisement" {
    }
 }
 
-# resource "kubernetes_manifest" "speaker_daemonset" {
-#   provider = kubernetes-alpha
-  
-#   # Assuming that the spect for speaker_daemonset is available in
-#   # the file 'speaker_daemonset.yaml'
-#   manifest = yamldecode(file("${path.module}/speaker_daemonset.yaml"))
+resource "kubernetes_manifest" "speaker_daemonset" {  
+  # Assuming that the spect for speaker_daemonset is available in
+  # the file 'speaker_daemonset.yaml'
+  manifest = {
+    apiVersion = "apps/v1"
+    kind = "DaemonSet"
+    namespace = "${kubernetes_namespace.metallb_system.id}"
+    metadata = {
+      name = "speaker"
+    }
+  }
 
-#   wait_for = {
-#     fields = {
-#       "status.numberAvailable" = 3 # Change this to the appropriate value
-#     }
-#   }
-# }
+  wait {
+    fields = {
+      "status.numberAvailable" = 3 # Change this to the appropriate value
+    }
+  }
+}
