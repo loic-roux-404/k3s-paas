@@ -54,10 +54,6 @@ locals {
   ingress_hosts_internals_joined = join(" ", var.ingress_hosts_internals)
 }
 
-output "waypoint_ingress_controller_ip" {
-  value = local.waypoint_ingress_controller_ip
-}
-
 resource "kubernetes_config_map" "coredns-custom" {
   count = var.waypoint_internal_acme_network_ip != null ? 1 : 0
   metadata {
@@ -86,4 +82,26 @@ resource "kubernetes_config_map" "coredns-custom" {
     }
     EOF
   }
+}
+
+resource "time_static" "restarted_at" {}
+
+resource "kubernetes_annotations" "coredns" {
+  api_version = "apps/v1"
+  kind        = "Deployment"
+  metadata {
+    name = "coredns"
+    namespace   = "kube-system"
+  }
+  template_annotations = {
+    "kubectl.kubernetes.io/restartedAt" = time_static.restarted_at.rfc3339
+  }
+}
+
+output "waypoint_ingress_controller_ip" {
+  value = local.waypoint_ingress_controller_ip
+}
+
+output "coredns_custom_id" {
+  value = kubernetes_annotations.coredns.id
 }

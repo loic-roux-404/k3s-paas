@@ -111,35 +111,16 @@ variable "metallb_ip_range" {
   default = null
 }
 
-variable "metallb_manifests" {
-  description = "Metallb Manifests"
-  type        = list(object({
-    url_manifest = object({
-      url      = string
-      filename = string
-    })
-    deploy = optional(string)
-    ns     = optional(string)
-  }))
-  default = [
-    {
-      url_manifest = {
-        url      = "https://raw.githubusercontent.com/metallb/metallb/v0.13.5/config/manifests/metallb-native.yaml"
-        filename = "metallb-native.yaml"
-      }
-      deploy = "controller"
-      ns     = "metallb-system"
-    },
-    {
-      url_manifest = {
-        url      = "https://raw.githubusercontent.com/metallb/metallb/v0.13.5/config/manifests/metallb-frr.yaml"
-        filename = "metallb-frr.yaml"
-      }
-    }
-  ]
-}
-
 variable "ingress_expected_svc" {
   type = string
   default = "nginx-ingress-controller"
+}
+
+variable "k3s_client_location" {
+  type = string
+  default = "keys/server/tls"
+}
+
+variable "vm_ip" {
+  default = "192.168.31.69"
 }

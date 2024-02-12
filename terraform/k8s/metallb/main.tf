@@ -1,44 +1,66 @@
 resource "kubernetes_namespace" "metallb_system" {
-   metadata {
-      name = "metallb-system"
-      labels = {
-         app = "metallb"
-      }
-   }
+  metadata {
+    name = "metallb-system"
+    labels = {
+      app = "metallb"
+    }
+  }
+}
+
+data "http" "metallb_manifests_metallb_native" {
+  url = var.metallb_manifests_metallb_frr
+}
+
+resource "kubernetes_manifest" "metallb_manifests_metallb_native" {
+  manifest = yamldecode(data.http.metallb_manifests_metallb_native.response_body)
+  wait {
+    rollout = true
+  }
+}
+
+data "http" "metallb_manifests_metallb_frr" {
+  url = var.metallb_manifests_metallb_frr
+}
+
+resource "kubernetes_manifest" "metallb_manifests_metallb_frr" {
+  manifest = yamldecode(data.http.metallb_manifests_metallb_frr.response_body)
+  wait {
+    rollout = true
+  }
 }
 
 resource "kubernetes_manifest" "metallb_ip_address_pool" {
-   manifest = {
-      apiVersion = "metallb.io/v1beta1"
-      kind = "IPAddressPool"
-      metadata = {
-         name = "kind-pool"
-         namespace = "${kubernetes_namespace.metallb_system.id}"
-      }
-      spec = {
-         addresses = [var.metallb_ip_range]
-      }
-   }
+  manifest = {
+    apiVersion = "metallb.io/v1beta1"
+    kind       = "IPAddressPool"
+    metadata = {
+      name      = "kind-pool"
+      namespace = "${kubernetes_namespace.metallb_system.id}"
+    }
+    spec = {
+      addresses = [var.metallb_ip_range]
+    }
+  }
 }
 
 resource "kubernetes_manifest" "metallb_l2_advertisement" {
-   manifest = {
-      apiVersion = "metallb.io/v1beta1"
-      kind = "L2Advertisement"
-      metadata = {
-          name = "kind-l2"
-          namespace = "${kubernetes_namespace.metallb_system.id}"
-      }
-   }
+  manifest = {
+    apiVersion = "metallb.io/v1beta1"
+    kind       = "L2Advertisement"
+    metadata = {
+      name      = "kind-l2"
+      namespace = "${kubernetes_namespace.metallb_system.id}"
+    }
+  }
 }
 
-resource "kubernetes_manifest" "speaker_daemonset" {  
+resource "kubernetes_manifest" "speaker_daemonset" {
   # Assuming that the spect for speaker_daemonset is available in
   # the file 'speaker_daemonset.yaml'
   manifest = {
     apiVersion = "apps/v1"
-    kind = "DaemonSet"
-    namespace = "${kubernetes_namespace.metallb_system.id}"
+    kind       = "DaemonSet"
+    namespace  = "${kubernetes_namespace.metallb_system.id}"
     metadata = {
       name = "speaker"
     }
@@ -46,7 +68,11 @@ resource "kubernetes_manifest" "speaker_daemonset" {
 
   wait {
     fields = {
-      "status.numberAvailable" = 3 # Change this to the appropriate value
+      "status.numberAvailable" = 1
     }
   }
+}
+
+output "daemonset_state" {
+  value = kubernetes_manifest.speaker_daemonset.object
 }

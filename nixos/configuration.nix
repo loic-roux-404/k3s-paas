@@ -8,11 +8,14 @@
 let dex_hostname = "${config.k3s-paas.dex.http_scheme}://dex.${config.k3s-paas.dns.name}";
 
 in {
-  imports = [ "${builtins.toString ./.}/k3s-paas.nix"];
+  imports = [ 
+    "${builtins.toString ./.}/k3s-paas.nix"
+  ];
 
   boot.kernelParams = [];
   boot.kernelPackages = pkgs.linuxPackages_latest;
   boot.growPartition = true;
+  boot.loader.systemd-boot.consoleMode = "0";
 
   system.stateVersion = "23.11";
 
@@ -70,15 +73,32 @@ in {
     };
   };
 
-  programs.bash.enableCompletion = true;
+  home-manager.useGlobalPkgs = true;
+  home-manager.useUserPackages = true;
+  home-manager.users.${config.k3s-paas.user.name} = {
+    home.stateVersion = "23.11";
+    home.file.".bashrc".source = lib.mkForce ./bashrc;
+    programs.gpg.enable = true;
+    home.file.".inputrc".source = ./inputrc;
+    home.sessionVariables = {
+      LANG = "en_US.UTF-8";
+      LC_CTYPE = "en_US.UTF-8";
+      LC_ALL = "en_US.UTF-8";
+      EDITOR = "vim";
+      PAGER = "less -FirSwX";
+    };
+    programs.bash = {
+      enable = true;
+      historyControl = [ "ignoredups" "ignorespace" ];
+      initExtra = "/home/${config.k3s-paas.user.name}/bashrc";
+    };
+  };
 
   environment = {
     enableAllTerminfo = true;
     shells = [ pkgs.bashInteractive pkgs.bash ];
     systemPackages = with pkgs; lib.mkForce [
-      systemd
-      bashInteractive
-      bash
+      systemdMinimal
       coreutils
       ncurses
       iconv

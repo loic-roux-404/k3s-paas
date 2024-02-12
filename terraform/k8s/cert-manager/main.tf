@@ -74,3 +74,12 @@ resource "kubernetes_config_map" "acme_internal_root_ca" {
     "ca.crt" = indent(4, var.waypoint_internal_acme_ca_content)
   }
 }
+
+
+output "cert_manager_metadata_name" {
+  value = helm_release.cert_manager.metadata
+}
+
+output "reflector_metadata_name" {
+  value = helm_release.reflector.metadata
+}

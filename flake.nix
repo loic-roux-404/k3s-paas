@@ -12,6 +12,11 @@
     darwin.url = "github:LnL7/nix-darwin";
     darwin.inputs.nixpkgs.follows = "srvos/nixpkgs";
 
+    home-manager = { 
+      url = "github:nix-community/home-manager/master"; 
+      inputs.nixpkgs.follows = "srvos/nixpkgs"; 
+    };
+
     nixos-generators = {
       url = "github:nix-community/nixos-generators";
       inputs.nixpkgs.follows = "srvos/nixpkgs";
@@ -69,6 +74,7 @@
 
       nixosModules = {
         server = srvos.nixosModules.server;
+        home-manager = inputs.home-manager.nixosModules.home-manager;
         configuration = ./nixos/configuration.nix;
       };
 
@@ -114,7 +120,7 @@
         qcow-x86_64-linux = makeOverridable nixos-generators.nixosGenerate {
           system = "x86_64-linux";
           modules = attrValues self.nixosModules ++ [
-            ./nixos/qemu.nix
+            ./nixos/contabo.nix
           ];
           format = "qcow";
         };
@@ -158,7 +164,7 @@
           default = pkgs.mkShell {
             name = "default";
             packages = attrValues {
-              inherit (pkgs) terraform kubectl nil waypoint pebble jq;
+              inherit (pkgs) terraform kubectl nil waypoint pebble jq e2fsprogs coreutils;
             };
           };
 

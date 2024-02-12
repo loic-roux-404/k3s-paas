@@ -20,7 +20,7 @@ Boot the builder :
 nix develop .#builder
 ```
 
-This starts dnsmasq in background, you may need to force a refresh of dns cache :
+This starts dnsmasq in background, you might need to force a refresh of dns cache :
 
 ```bash
 sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder
@@ -38,15 +38,20 @@ To uninstall the builder inside darwin env :
 ./scripts/build-vm.sh
 ```
 
-Start Machine without terraform :
-
-```bash
-QEMU_NET_OPTS="hostfwd=tcp::2222-:22," ./result/bin/run-k3s-paas-vm
-```
-
 ### Terraform local setup
 
-Bootstrap terraform :
+```bash
+cd terraform
+```
+
+Bootrap local vm :
+
+```bash
+terraform -chdir=local init
+terraform -chdir=local apply -auto-approve
+```
+
+Setup k8s modules :
 
 ```bash
 terraform init

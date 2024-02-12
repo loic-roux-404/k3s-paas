@@ -1,13 +1,12 @@
 resource "null_resource" "start_qemu" {
   provisioner "local-exec" {
     environment = {
-      QEMU_OPTS = "-daemonize -nic vmnet-bridged,ifname=br0"
-      QEMU_NET_OPTS = "hostfwd=tcp::2222-:22,hostfwd=tcp::6443-:6443,hostfwd=tcp::443-:443,hostfwd=tcp::80-:80"
+      QEMU_OPTS = "-daemonize -nic vmnet-bridged,ifname=${var.qemu_network_interface}"
+      QEMU_NET_OPTS = join(",", [for k, v in var.port_mappings : "hostfwd=tcp::${k}-:${v},"])
       OBJC_DISABLE_INITIALIZE_FORK_SAFETY = "YES"
-      QEMU_KERNEL_PARAMS = "console=ttyS0"
     }
     working_dir = var.qemu_working_dir
-    command = "./result/bin/run-k3s-paas-vm"
+    command = "echo ${var.sudo_password} || sudo -S ./result/bin/run-k3s-paas-vm"
   }
 }
 
@@ -22,7 +21,7 @@ locals {
   private_key = trimspace(file(pathexpand(var.ssh_connection.private_key)))
 }
 
-resource "null_resource" "recover_ip" {
+resource "null_resource" "vm_started" {
   provisioner "remote-exec" {
     connection {
       type     = "ssh"
@@ -31,6 +30,7 @@ resource "null_resource" "recover_ip" {
       private_key = local.private_key
       port = "2222"
       agent = false
+      timeout = "45s"
     }
 
     inline = [ "echo 'Machine Started'" ]
@@ -38,7 +38,7 @@ resource "null_resource" "recover_ip" {
 }
 
 data "external" "ip" {
-  depends_on = [ null_resource.recover_ip ]
+  depends_on = [ null_resource.vm_started ]
   program = ["bash", "./${path.module}/info-scripts/ip.sh"]
   query = {
     ssh_connection_user = var.ssh_connection.user
@@ -52,9 +52,10 @@ data "external" "host_ip" {
 
 output "ip" {
   depends_on = [ data.external.ip ]
-  value = data.external.ip.result
+  value = data.external.ip.result.result
 }
 
 output "host_ip" {
-  value = data.external.host_ip.result
+  depends_on = [ null_resource.vm_started ]
+  value = data.external.host_ip.result.result
 }

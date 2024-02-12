@@ -31,4 +31,3 @@ variable "cert_manager_acme_url" {
   description = "The url of the acme server"
   type        = string
 }
-

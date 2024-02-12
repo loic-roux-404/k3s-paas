@@ -7,4 +7,9 @@
   # };
 
   boot.initrd.kernelModules = lib.mkForce ["dm-snapshot"];
+
+  fileSystems."/boot" =
+    { device = "/dev/disk/by-label/boot";
+      fsType = "vfat";
+    };
 }
