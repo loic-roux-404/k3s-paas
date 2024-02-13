@@ -73,6 +73,7 @@
       };
 
       nixosModules = {
+        commin = srvos.nixosModules.common;
         server = srvos.nixosModules.server;
         home-manager = inputs.home-manager.nixosModules.home-manager;
         configuration = ./nixos/configuration.nix;

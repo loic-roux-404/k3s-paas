@@ -11,3 +11,6 @@ $if Bash
 # will expand !! for you.
 Space: magic-space
 $endif
+
+"\e[5~": history-search-backward
+"\e[6~": history-search-forward

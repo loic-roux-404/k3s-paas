@@ -26,15 +26,7 @@ variable "ssh_connection" {
   }
 }
 
-variable "vm_ip_gateway" {
-  default = "192.168.31.1"
-}
-
-variable "vm_ip" {
-  default = "192.168.31.69"
-}
-
 variable "sudo_password" {
   default = "zizou"
-  #sensitive = true
+  sensitive = true
 }

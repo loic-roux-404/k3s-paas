@@ -6,16 +6,13 @@
 }: 
 
 let dex_hostname = "${config.k3s-paas.dex.http_scheme}://dex.${config.k3s-paas.dns.name}";
-
 in {
   imports = [ 
     "${builtins.toString ./.}/k3s-paas.nix"
   ];
 
-  boot.kernelParams = [];
   boot.kernelPackages = pkgs.linuxPackages_latest;
   boot.growPartition = true;
-  boot.loader.systemd-boot.consoleMode = "0";
 
   system.stateVersion = "23.11";
 
@@ -78,12 +75,8 @@ in {
   home-manager.users.${config.k3s-paas.user.name} = {
     home.stateVersion = "23.11";
     home.file.".bashrc".source = lib.mkForce ./bashrc;
-    programs.gpg.enable = true;
     home.file.".inputrc".source = ./inputrc;
     home.sessionVariables = {
-      LANG = "en_US.UTF-8";
-      LC_CTYPE = "en_US.UTF-8";
-      LC_ALL = "en_US.UTF-8";
       EDITOR = "vim";
       PAGER = "less -FirSwX";
     };
@@ -95,14 +88,14 @@ in {
   };
 
   environment = {
-    enableAllTerminfo = true;
-    shells = [ pkgs.bashInteractive pkgs.bash ];
-    systemPackages = with pkgs; lib.mkForce [
-      systemdMinimal
+    shells = [ pkgs.bash ];
+    systemPackages = with pkgs; [
+      glibcLocales
+      systemd
       coreutils
-      ncurses
       iconv
       gawk
+      bash
       vim
       gitMinimal
       openssh_hpn
@@ -112,6 +105,9 @@ in {
       iptables
       btop
       curl
+      dnsutils
+      jq
+      tmux
       wget
       k3s
       kubectl
@@ -124,7 +120,7 @@ in {
   security.pam.sshAgentAuth.enable = true;
 
   users = {
-    defaultUserShell = pkgs.bashInteractive;
+    defaultUserShell = pkgs.bash;
     allowNoPasswordLogin = true;
     users = {
       ${config.k3s-paas.user.name} = {

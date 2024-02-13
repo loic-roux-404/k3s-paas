@@ -8,3 +8,7 @@ module "qemu_instance" {
 module "pebble" {
   source = "./pebble"
 }
+
+output "ip" {
+  value = module.qemu_instance.ip
+}

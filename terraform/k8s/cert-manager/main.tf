@@ -75,7 +75,6 @@ resource "kubernetes_config_map" "acme_internal_root_ca" {
   }
 }
 
-
 output "cert_manager_metadata_name" {
   value = helm_release.cert_manager.metadata
 }

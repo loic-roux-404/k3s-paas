@@ -1,5 +1,5 @@
 variable "vm_ip" {
-  default = "192.168.31.69"
+  default = "localhost"
 }
 
 variable "sudo_password" {

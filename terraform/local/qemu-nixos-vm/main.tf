@@ -2,17 +2,25 @@ resource "null_resource" "start_qemu" {
   provisioner "local-exec" {
     environment = {
       QEMU_OPTS = "-daemonize -nic vmnet-bridged,ifname=${var.qemu_network_interface}"
-      QEMU_NET_OPTS = join(",", [for k, v in var.port_mappings : "hostfwd=tcp::${k}-:${v},"])
+      QEMU_NET_OPTS = join(",", [for k, v in var.port_mappings : "hostfwd=tcp::${k}-:${v}"])
       OBJC_DISABLE_INITIALIZE_FORK_SAFETY = "YES"
     }
     working_dir = var.qemu_working_dir
-    command = "echo ${var.sudo_password} || sudo -S ./result/bin/run-k3s-paas-vm"
+    command = "echo ${var.sudo_password} | sudo -SE ./result/bin/run-k3s-paas-vm"
   }
 }
 
-resource "null_resource" "stop_qemu" {
+resource "null_resource" "destroy_qemu" {
+  triggers = {
+    sudo_password = var.sudo_password
+  }
   provisioner "local-exec" {
-    command = "ps aux | grep qemu | grep nixos-system-k3s-paas | grep -v grep | awk '{print $2}' | xargs kill"
+    command = <<EOF
+      pid=$(ps aux | grep qemu | grep nixos-system-k3s-paas | grep -v grep | awk '{print $2}') &&
+      if [ -n "$pid" ]; then
+        echo ${self.triggers.sudo_password} | sudo kill $pid
+      fi
+    EOF
     when = destroy
   }
 }
@@ -22,6 +30,7 @@ locals {
 }
 
 resource "null_resource" "vm_started" {
+  depends_on = [ null_resource.start_qemu ]
   provisioner "remote-exec" {
     connection {
       type     = "ssh"
