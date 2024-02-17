@@ -15,4 +15,19 @@
     };
 
   swapDevices = [ ];
+
+  virtualisation.vlans = [ 1 ];
+
+  systemd.network.networks."10-wan" = {
+    matchConfig.Name = "eth*";
+    networkConfig = {
+      # start a DHCP Client for IPv4 Addressing/Routing
+      DHCP = "ipv4";
+      # accept Router Advertisements for Stateless IPv6 Autoconfiguraton (SLAAC)
+      IPv6AcceptRA = true;
+    };
+    # make routing on this interface a dependency for network-online.target
+    linkConfig.RequiredForOnline = "routable";
+  };
+
 }

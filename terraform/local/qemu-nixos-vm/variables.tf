@@ -30,3 +30,9 @@ variable "sudo_password" {
   default = "zizou"
   sensitive = true
 }
+
+variable "vm_ip" {
+  type = string
+  description = "value for the vm ip"
+  default = null
+}

@@ -12,7 +12,8 @@ in {
   ];
 
   boot.kernelPackages = pkgs.linuxPackages_latest;
-  boot.growPartition = true;
+  fileSystems."/".autoResize = true;
+  boot.loader.systemd-boot.consoleMode = "auto";
 
   system.stateVersion = "23.11";
 
@@ -56,14 +57,13 @@ in {
   };
 
   systemd.network.enable = true;
-  networking.networkmanager.enable = true;
-  networking.dhcpcd.enable = true;
 
   services.fail2ban.enable = true;
 
   networking = {
     hostName = "k3s-paas";
-    usePredictableInterfaceNames = lib.mkForce true;
+    useNetworkd = true;
+    useDHCP = false;
     firewall = {
       enable = true;
       allowedTCPPorts = lib.mkForce [80 443 22 6443];
@@ -79,6 +79,7 @@ in {
     home.sessionVariables = {
       EDITOR = "vim";
       PAGER = "less -FirSwX";
+      TERM = "xterm-256color";
     };
     programs.bash = {
       enable = true;
@@ -88,14 +89,15 @@ in {
   };
 
   environment = {
-    shells = [ pkgs.bash ];
+    shells = [ pkgs.bashInteractive ];
     systemPackages = with pkgs; [
       glibcLocales
+      xterm
       systemd
       coreutils
       iconv
       gawk
-      bash
+      bashInteractive
       vim
       gitMinimal
       openssh_hpn
@@ -107,7 +109,6 @@ in {
       curl
       dnsutils
       jq
-      tmux
       wget
       k3s
       kubectl
@@ -120,7 +121,7 @@ in {
   security.pam.sshAgentAuth.enable = true;
 
   users = {
-    defaultUserShell = pkgs.bash;
+    defaultUserShell = pkgs.bashInteractive;
     allowNoPasswordLogin = true;
     users = {
       ${config.k3s-paas.user.name} = {
