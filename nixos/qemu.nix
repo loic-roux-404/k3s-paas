@@ -18,16 +18,14 @@
 
   virtualisation.vlans = [ 1 ];
 
-  systemd.network.networks."10-wan" = {
-    matchConfig.Name = "eth*";
-    networkConfig = {
-      # start a DHCP Client for IPv4 Addressing/Routing
-      DHCP = "ipv4";
-      # accept Router Advertisements for Stateless IPv6 Autoconfiguraton (SLAAC)
-      IPv6AcceptRA = true;
+  systemd.network.networks = {
+    "10-dhcp" = {
+      matchConfig.Name = "eth*";
+      networkConfig = {
+        DHCP = "ipv4";
+        IPv6AcceptRA = true;
+      };
+      linkConfig.RequiredForOnline = "routable";
     };
-    # make routing on this interface a dependency for network-online.target
-    linkConfig.RequiredForOnline = "routable";
   };
-
 }

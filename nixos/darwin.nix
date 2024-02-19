@@ -14,6 +14,13 @@
       ".${config.k3s-paas.dns.name}" = config.k3s-paas.dns.dest-ip;
     };
   };
+  networking = {
+    knownNetworkServices = [
+      "Wi-Fi"
+      "Bluetooth PAN"
+      "Thunderbolt Bridge"
+    ];
+  };
   environment.etc.${config.k3s-paas.dns.name}.text = "nameserver ${config.k3s-paas.dns.dest-ip}";
   nix.settings = {
     trusted-users = [ "staff" "admin" "nixbld"];

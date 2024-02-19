@@ -16,10 +16,10 @@ terraform {
 }
 
 provider "kubernetes" {
-  host =  "https://${var.vm_ip}:6443"
+  host =  "http://${var.vm_ip}:6443"
   client_certificate     = file("${var.k3s_client_location}/client-ca.pem")
   client_key             = file("${var.k3s_client_location}/client-ca.key")
-  cluster_ca_certificate = file("${var.k3s_client_location}/server-ca.crt")
+  cluster_ca_certificate = file("${var.k3s_client_location}/root-ca.pem")
 }
 
 provider "helm" {}

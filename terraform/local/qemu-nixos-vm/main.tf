@@ -1,4 +1,5 @@
 resource "null_resource" "start_qemu" {
+
   provisioner "local-exec" {
     environment = {
       QEMU_OPTS = "-daemonize -nic vmnet-bridged,ifname=${var.qemu_network_interface}"
@@ -20,6 +21,19 @@ resource "null_resource" "destroy_qemu" {
       if [ -n "$pid" ]; then
         echo ${self.triggers.sudo_password} | sudo kill $pid
       fi
+    EOF
+    when = destroy
+  }
+}
+
+resource "null_resource" "destroy_disk" {
+  triggers = {
+    qemu_working_dir = var.qemu_working_dir
+  }
+  provisioner "local-exec" {
+    working_dir = self.triggers.qemu_working_dir
+    command = <<EOF
+      rm -rf k3s-paas.qcow2
     EOF
     when = destroy
   }
@@ -55,16 +69,7 @@ data "external" "ip" {
   }
 }
 
-data "external" "host_ip" {
-  program = ["bash", "./${path.module}/info-scripts/host_ip.sh"]
-}
-
 output "ip" {
   depends_on = [ data.external.ip ]
   value = data.external.ip.result.result
-}
-
-output "host_ip" {
-  depends_on = [ null_resource.vm_started ]
-  value = data.external.host_ip.result.result
 }
