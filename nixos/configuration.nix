@@ -31,7 +31,6 @@ in {
   programs.ssh.package = pkgs.openssh_hpn;
 
   services = {
-    getty.autologinUser = config.k3s-paas.user.name;
     openssh = {
       enable = true;
       settings = {
@@ -77,10 +76,6 @@ in {
   home-manager.useUserPackages = true;
   home-manager.users.${config.k3s-paas.user.name} = {
     xdg.enable = true;
-    xdg.configFile = {
-      "ghostty/config".text = builtins.readFile ./ghostty.linux;
-    };
-
     home.stateVersion = "23.05";
     home.file.".bashrc".source = lib.mkForce ./bashrc;
     home.file.".inputrc".source = ./inputrc;
@@ -88,38 +83,14 @@ in {
       EDITOR = "vim";
       PAGER = "less -FirSwX";
     };
-
     programs.bash = {
       enable = true;
       historyControl = [ "ignoredups" "ignorespace" ];
       initExtra = "/home/${config.k3s-paas.user.name}/bashrc";
     };
-
-    programs.alacritty = {
-      enable = true;
-
-      settings = {
-        env.TERM = "xterm-256color";
-
-        key_bindings = [
-          { key = "K"; mods = "Command"; chars = "ClearHistory"; }
-          { key = "V"; mods = "Command"; action = "Paste"; }
-          { key = "C"; mods = "Command"; action = "Copy"; }
-          { key = "Key0"; mods = "Command"; action = "ResetFontSize"; }
-          { key = "Equals"; mods = "Command"; action = "IncreaseFontSize"; }
-          { key = "Subtract"; mods = "Command"; action = "DecreaseFontSize"; }
-        ];
-      };
-    };
-
-    programs.kitty = {
-      enable = true;
-      extraConfig = builtins.readFile ./kitty;
-    };
   };
 
   environment = {
-    enableAllTerminfo = true;
     shells = [ pkgs.bashInteractive ];
     systemPackages = with pkgs; [
       glibcLocales

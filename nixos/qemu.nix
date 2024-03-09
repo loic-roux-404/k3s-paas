@@ -1,4 +1,4 @@
-{ modulesPath, ... }:
+{ pkgs, modulesPath, config, ... }:
 {
   imports = [
     "${modulesPath}/installer/scan/not-detected.nix"
@@ -16,7 +16,10 @@
 
   swapDevices = [ ];
 
+  virtualisation.host.pkgs = pkgs;
   virtualisation.vlans = [ 1 ];
+
+  services.getty.autologinUser = config.k3s-paas.user.name;
 
   systemd.network.networks = {
     "10-dhcp" = {

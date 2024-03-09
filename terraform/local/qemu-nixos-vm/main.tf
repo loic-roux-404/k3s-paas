@@ -2,7 +2,7 @@ resource "null_resource" "start_qemu" {
 
   provisioner "local-exec" {
     environment = {
-      QEMU_OPTS = "-daemonize -nic vmnet-bridged,ifname=${var.qemu_network_interface}"
+      QEMU_OPTS = "-nic vmnet-bridged,ifname=${var.qemu_network_interface}"
       QEMU_NET_OPTS = join(",", [for k, v in var.port_mappings : "hostfwd=tcp::${k}-:${v}"])
       OBJC_DISABLE_INITIALIZE_FORK_SAFETY = "YES"
     }
@@ -53,7 +53,7 @@ resource "null_resource" "vm_started" {
       private_key = local.private_key
       port = "2222"
       agent = false
-      timeout = "45s"
+      timeout = "30s"
     }
 
     inline = [ "echo 'Machine Started'" ]

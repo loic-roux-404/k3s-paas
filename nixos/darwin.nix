@@ -1,7 +1,8 @@
-{ lib, config, ... }:
+{ pkgs, lib, config, ... }:
 {
-  imports = [ "${builtins.toString ./.}/k3s-paas.nix"];
-
+  imports = [ 
+    "${builtins.toString ./.}/k3s-paas.nix"
+  ];
   launchd.daemons.linux-builder = {
     serviceConfig = {
       StandardOutPath = "/var/log/darwin-builder.log";
@@ -14,6 +15,30 @@
       ".${config.k3s-paas.dns.name}" = config.k3s-paas.dns.dest-ip;
     };
   };
+  launchd.daemons."libvirt" = {
+    path = [ pkgs.qemu pkgs.dnsmasq pkgs.libvirt ];
+    serviceConfig = {
+      KeepAlive = true;
+      RunAtLoad = true;
+      ProgramArguments = [ 
+        "${pkgs.libvirt}/bin/libvirtd" "-f" "/etc/libvirt/libvirtd.conf" 
+      ];
+      StandardOutPath = "/var/log/libvirt.log";
+      StandardErrorPath = "/var/log/libvirt.log";
+    };
+  };
+  launchd.daemons."virtlogd" = {
+    path = [ pkgs.libvirt ];
+    serviceConfig = {
+      KeepAlive = true;
+      RunAtLoad = true;
+      ProgramArguments = [ 
+        "${pkgs.libvirt}/bin/virtlogd" 
+      ];
+      StandardOutPath = "/var/log/virtlogd.log";
+      StandardErrorPath = "/var/log/virtlogd.log";
+    };
+  };
   networking = {
     knownNetworkServices = [
       "Wi-Fi"
@@ -21,6 +46,20 @@
       "Thunderbolt Bridge"
     ];
   };
+  environment.etc."libvirt/libvirtd.conf".text = ''
+    mode = "direct"
+    unix_sock_group = "staff"
+    unix_sock_ro_perms = "0770"
+    unix_sock_rw_perms = "0770"
+    unix_sock_admin_perms = "0770"
+    auth_unix_ro = "none"
+    auth_unix_rw = "none"
+  '';
+  environment.etc."libvirt/qemu.conf".text = ''
+    security_driver = "none"
+    dynamic_ownership = 0
+    remember_owner = 0
+  '';
   environment.etc.${config.k3s-paas.dns.name}.text = "nameserver ${config.k3s-paas.dns.dest-ip}";
   nix.settings = {
     trusted-users = [ "staff" "admin" "nixbld"];
@@ -40,7 +79,5 @@
   nix.configureBuildUsers = true;
   nix.distributedBuilds = true;
   services.nix-daemon.enable = true;
-  nix.extraOptions = ''
-    experimental-features = nix-command flakes
-  '';
+  nix.settings.experimental-features = "nix-command flakes";
 }

@@ -14,3 +14,7 @@ result
 core
 keys
 *.log
+xchg/
+!xchg/.gitkeep
+libvirt-pool
+!libvirt-pool/.gitkeep
