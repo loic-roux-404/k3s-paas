@@ -174,7 +174,7 @@
           builder = pkgs.mkShell {
             name = "builder";
             packages = attrValues {
-              inherit (pkgs) nil coreutils e2fsprogs qemu libvirt;
+              inherit (pkgs) nil coreutils e2fsprogs;
             };
             shellHook = (if pkgs.system == "aarch64-darwin" then ''
               nix build .#darwinConfigurations.k3s-paas-host.system

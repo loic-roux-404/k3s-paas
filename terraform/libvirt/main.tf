@@ -23,21 +23,21 @@ resource "libvirt_pool" "volumetmp" {
 }
 
 resource "libvirt_volume" "base" {
-  name   = "nixos"
+  name   = "k3s-paas.qcow2"
   source = "${path.cwd}/k3s-paas.qcow2"
   pool   = libvirt_pool.volumetmp.name
   format = "qcow2"
 }
 
 resource "libvirt_volume" "kernel" {
-  name   = "nixos"
+  name   = "kernel"
   source = local.boot_spec.kernel
   pool   = libvirt_pool.volumetmp.name
   format = "qcow2"
 }
 
 resource "libvirt_volume" "vm-disk" {
-  name           = "nixos.qcow2"
+  name           = "storage.qcow2"
   base_volume_id = libvirt_volume.base.id
   pool           = libvirt_pool.volumetmp.name
   format         = "qcow2"
@@ -48,6 +48,10 @@ resource "libvirt_domain" "machine" {
   vcpu     = 2
   memory   = 4096
   type = "hvf"
+
+  disk {
+    volume_id = libvirt_volume.base.id
+  }
 
   disk {
     volume_id = libvirt_volume.vm-disk.id
@@ -76,6 +80,10 @@ resource "libvirt_domain" "machine" {
     listen_type = "address"
   }
 
+  video {
+    type = "virtio"
+  }
+
   console {
     type        = "pty"
     target_port = "0"
@@ -85,22 +93,22 @@ resource "libvirt_domain" "machine" {
   initrd = local.boot_spec.initrd
   kernel = libvirt_volume.kernel.id
 
-  cmdline = [{
-    console = "ttyS0"
-    console = "tty0"
-    console = "ttyAMA0,115200"
-    console = "ttyS0,115200"
-    loglevel = 4
-    "net.ifnames" = 0
-    init = local.boot_spec.init
-  }]
+  cmdline = concat(flatten([
+      for obj in local.boot_spec.kernelParams : {
+        split("=", obj)[0] = split("=", obj)[1]
+      }
+    ]),
+    [{ init = local.boot_spec.init }]
+  )
 
   xml {
     xslt = templatefile("${path.module}/nixos.xslt.tmpl", {
-      commands = {
-        "-netdev" = "user,id=user.0,${local.port_mappings}"
-        "-nic" = "vmnet-bridged,ifname=${var.qemu_network_interface}"
-      }
+      args = [
+        "-netdev", "user,id=user.0,${local.port_mappings}",
+        "-net", "nic,netdev=user.0,model=virtio,addr=0x8",
+        "-netdev", "vmnet-bridged,id=bridge.0,ifname=${var.qemu_network_interface}",
+        "-device", "virtio-net-pci,netdev=bridge.0,addr=0x9"
+      ]
     })
   }
 }

@@ -16,7 +16,7 @@
     };
   };
   launchd.daemons."libvirt" = {
-    path = [ pkgs.qemu pkgs.dnsmasq pkgs.libvirt ];
+    path = [ pkgs.gcc pkgs.qemu pkgs.dnsmasq pkgs.libvirt ];
     serviceConfig = {
       KeepAlive = true;
       RunAtLoad = true;
