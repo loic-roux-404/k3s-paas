@@ -14,6 +14,11 @@ provider "libvirt" {
 locals {
   boot_spec = jsondecode(file("${path.cwd}/result/system/boot.json"))["org.nixos.bootspec.v1"]
   port_mappings = join(",", [for k, v in var.port_mappings : "hostfwd=tcp::${k}-:${v}"])
+  kernel_params = flatten([
+    for obj in local.boot_spec.kernelParams : {
+      split("=", obj)[0] = split("=", obj)[1]
+    }
+  ])
 }
 
 resource "libvirt_pool" "volumetmp" {
@@ -59,45 +64,43 @@ resource "libvirt_domain" "machine" {
 
   filesystem {
     source   = "/nix/store"
-    target   = "nix-store"
+    target   = "/nix/store"
     readonly = true
   }
 
   filesystem {
     source   = "${path.cwd}/xchg"
-    target   = "xchg"
+    target   = "/xchg"
     readonly = false
   }
 
   filesystem {
     source   = "${path.cwd}/xchg"
-    target   = "shared"
+    target   = "/shared"
     readonly = false
   }
 
-  graphics {
-    type = "vnc"
-    listen_type = "address"
-  }
+  # graphics {
+  #   type = "vnc"
+  #   listen_type = "address"
+  #   autoport = true
+  # }
 
-  video {
-    type = "virtio"
-  }
+  # console {
+  #   type        = "pty"
+  #   target_port = "0"
+  #   target_type = "virtio"
+  #   source_path = "/dev/pts/4"
+  # }
 
-  console {
-    type        = "pty"
-    target_port = "0"
-    target_type = "serial"
-  }
+  # video {
+  #   type = "virtio"
+  # }
 
   initrd = local.boot_spec.initrd
   kernel = libvirt_volume.kernel.id
-
-  cmdline = concat(flatten([
-      for obj in local.boot_spec.kernelParams : {
-        split("=", obj)[0] = split("=", obj)[1]
-      }
-    ]),
+  cmdline = concat(
+    local.kernel_params,
     [{ init = local.boot_spec.init }]
   )
 
@@ -107,7 +110,8 @@ resource "libvirt_domain" "machine" {
         "-netdev", "user,id=user.0,${local.port_mappings}",
         "-net", "nic,netdev=user.0,model=virtio,addr=0x8",
         "-netdev", "vmnet-bridged,id=bridge.0,ifname=${var.qemu_network_interface}",
-        "-device", "virtio-net-pci,netdev=bridge.0,addr=0x9"
+        "-device", "virtio-net-pci,netdev=bridge.0,addr=0x9",
+        "-nographic", "-serial", "mon:stdio"
       ]
     })
   }

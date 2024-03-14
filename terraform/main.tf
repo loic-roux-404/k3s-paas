@@ -7,7 +7,13 @@ locals {
   api_waypoint_hostname = "api.${local.waypoint_hostname}"
 }
 
+module "pebble" {
+  source = "pebble"
+  enable = local.cert_manager_acme_ca_url != null
+}
+
 data "http" "waypoint_internal_acme_ca" {
+  depends_on = [ module.pebble ]
   url = local.cert_manager_acme_ca_url
   count = local.cert_manager_acme_ca_url != null ? 1 : 0
   insecure = var.cert_manager_letsencrypt_env == "local"

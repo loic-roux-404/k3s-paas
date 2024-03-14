@@ -21,10 +21,10 @@
       KeepAlive = true;
       RunAtLoad = true;
       ProgramArguments = [ 
-        "${pkgs.libvirt}/bin/libvirtd" "-f" "/etc/libvirt/libvirtd.conf" 
+        "${pkgs.libvirt}/bin/libvirtd" "-f" "/etc/libvirt/libvirtd.conf" "-v" 
       ];
       StandardOutPath = "/var/log/libvirt.log";
-      StandardErrorPath = "/var/log/libvirt.log";
+      StandardErrorPath = "/var/log/libvirt-error.log";
     };
   };
   launchd.daemons."virtlogd" = {
@@ -32,19 +32,10 @@
     serviceConfig = {
       KeepAlive = true;
       RunAtLoad = true;
-      ProgramArguments = [ 
-        "${pkgs.libvirt}/bin/virtlogd" 
-      ];
+      ProgramArguments = [ "${pkgs.libvirt}/bin/virtlogd" "-d" ];
       StandardOutPath = "/var/log/virtlogd.log";
-      StandardErrorPath = "/var/log/virtlogd.log";
+      StandardErrorPath = "/var/log/virtlogd-error.log";
     };
-  };
-  networking = {
-    knownNetworkServices = [
-      "Wi-Fi"
-      "Bluetooth PAN"
-      "Thunderbolt Bridge"
-    ];
   };
   environment.etc."libvirt/libvirtd.conf".text = ''
     mode = "direct"
@@ -54,6 +45,8 @@
     unix_sock_admin_perms = "0770"
     auth_unix_ro = "none"
     auth_unix_rw = "none"
+    log_level = 1
+    log_outputs="1:stderr"
   '';
   environment.etc."libvirt/qemu.conf".text = ''
     security_driver = "none"

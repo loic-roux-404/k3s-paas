@@ -6,7 +6,8 @@
     nixpkgs-stable.url = "github:NixOS/nixpkgs/23.11";
     nixpkgs-stable-darwin.url = "github:NixOS/nixpkgs/nixpkgs-23.11-darwin";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
-    srvos.url = "github:numtide/srvos";
+    srvos.url = "github:numtide/srvos?rev=b54e462b834d6c95721382a3fdb90411b0642220";
+    nixpkgs-srvos.follows = "srvos/nixpkgs";
 
     # Environment/system management
     darwin.url = "github:LnL7/nix-darwin";
@@ -38,7 +39,7 @@
       };
     in
     {
-      lib = inputs.nixpkgs-unstable.lib.extend (_: _: {
+      lib = inputs.nixpkgs-srvos.lib.extend (_: _: {
         mkDarwinSystem = import ./lib/mkDarwinSystem.nix inputs;
       });
 
@@ -91,9 +92,6 @@
 
         # My Apple Silicon macOS laptop config
         k3s-paas-host = makeOverridable self.lib.mkDarwinSystem ({
-          specialArgs = {
-            stablePkgs = (import inputs.nixpkgs-stable {system = "aarch64-darwin";});
-          };
           modules = attrValues self.darwinModules ++ singleton {
             nixpkgs = nixpkgsDefaults;
             nix.registry.my.flake = inputs.self;
@@ -151,7 +149,7 @@
       };
 
     } // flake-utils.lib.eachDefaultSystem (system: {
-      # Re-export `nixpkgs-unstable` with overlays.
+      # Re-export `nixpkgs-stable` with overlays.
       # This is handy in combination with setting `nix.registry.my.flake = inputs.self`.
       # Allows doing things like `nix run my#prefmanager -- watch --all`
       legacyPackages = import inputs.nixpkgs-stable (nixpkgsDefaults // { inherit system; });
@@ -165,9 +163,8 @@
           default = pkgs.mkShell {
             name = "default";
             packages = attrValues {
-              inherit (pkgs) terraform kubectl 
-              nil waypoint pebble jq e2fsprogs
-              coreutils libvirt qemu;
+              inherit (pkgs) terraform kubectl nil waypoint pebble jq
+              e2fsprogs coreutils libvirt qemu virt-viewer;
             };
           };
 

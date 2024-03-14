@@ -18,7 +18,7 @@ in {
 
   boot.kernelPackages = pkgs.linuxPackages_latest;
   fileSystems."/".autoResize = true;
-  boot.loader.systemd-boot.consoleMode = "max";
+  #boot.loader.systemd-boot.consoleMode = "0";
 
   system.stateVersion = "23.05";
 
@@ -64,31 +64,31 @@ in {
 
   networking = {
     hostName = "k3s-paas";
-    useNetworkd = true;
+    #useNetworkd = true;
     useDHCP = false;
     firewall = {
       enable = true;
-      allowedTCPPorts = lib.mkForce [80 443 22 6443];
+      allowedTCPPorts = lib.mkForce [80 443 22 6443 5900];
     };
   };
 
-  home-manager.useGlobalPkgs = true;
-  home-manager.useUserPackages = true;
-  home-manager.users.${config.k3s-paas.user.name} = {
-    xdg.enable = true;
-    home.stateVersion = "23.05";
-    home.file.".bashrc".source = lib.mkForce ./bashrc;
-    home.file.".inputrc".source = ./inputrc;
-    home.sessionVariables = {
-      EDITOR = "vim";
-      PAGER = "less -FirSwX";
-    };
-    programs.bash = {
-      enable = true;
-      historyControl = [ "ignoredups" "ignorespace" ];
-      initExtra = "/home/${config.k3s-paas.user.name}/bashrc";
-    };
-  };
+  # home-manager.useGlobalPkgs = true;
+  # home-manager.useUserPackages = true;
+  # home-manager.users.${config.k3s-paas.user.name} = {
+  #   xdg.enable = true;
+  #   home.stateVersion = "23.11";
+  #   home.file.".bashrc".source = lib.mkForce ./bashrc;
+  #   home.file.".inputrc".source = ./inputrc;
+  #   home.sessionVariables = {
+  #     EDITOR = "vim";
+  #     PAGER = "less -FirSwX";
+  #   };
+  #   programs.bash = {
+  #     enable = true;
+  #     historyControl = [ "ignoredups" "ignorespace" ];
+  #     initExtra = "/home/${config.k3s-paas.user.name}/bashrc";
+  #   };
+  # };
 
   environment = {
     shells = [ pkgs.bashInteractive ];
@@ -114,7 +114,6 @@ in {
   };
 
   security.sudo.wheelNeedsPassword = false;
-  security.pam.sshAgentAuth.enable = true;
 
   users = {
     defaultUserShell = pkgs.bashInteractive;
