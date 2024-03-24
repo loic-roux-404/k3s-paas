@@ -3,6 +3,9 @@
   imports = [ 
     "${builtins.toString ./.}/k3s-paas.nix"
   ];
+  programs.fish.enable = true;
+  programs.bash.enable = true;
+  environment.systemPackages = [ pkgs.bashInteractive ];
   launchd.daemons.linux-builder = {
     serviceConfig = {
       StandardOutPath = "/var/log/darwin-builder.log";

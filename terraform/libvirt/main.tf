@@ -76,14 +76,6 @@ resource "libvirt_domain" "machine" {
     mode = "host-passthrough"
   }
 
-  initrd = local.boot_spec.initrd
-  kernel = libvirt_volume.kernel.id
-  cmdline = concat(
-    local.kernel_params,
-    [{ init = local.boot_spec.init }]
-  )
-
-
   xml {
     xslt = templatefile("${path.module}/nixos.xslt.tmpl", {
       args = concat([

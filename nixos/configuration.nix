@@ -37,6 +37,7 @@ in {
         # Allow forwarding ports to everywhere
         GatewayPorts = "clientspecified";
         PasswordAuthentication = lib.mkForce false;
+        StreamLocalBindUnlink = lib.mkForce "yes";
         PermitRootLogin = "no";
       };
     };

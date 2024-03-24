@@ -16,5 +16,5 @@ keys
 *.log
 xchg/
 !xchg/.gitkeep
-libvirt-pool
-!libvirt-pool/.gitkeep
+libvirt-nixos-pool/
+!libvirt-nixos-pool/.gitkeep

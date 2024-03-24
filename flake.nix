@@ -39,7 +39,7 @@
       };
     in
     {
-      lib = inputs.nixpkgs-stable.lib.extend (_: _: {
+      lib = inputs.nixpkgs-srvos.lib.extend (_: _: {
         mkDarwinSystem = import ./lib/mkDarwinSystem.nix inputs;
       });
 
@@ -167,7 +167,7 @@
           default = pkgs.mkShell {
             name = "default";
             packages = attrValues {
-              inherit (pkgs) kubectl nil waypoint pebble jq
+              inherit (pkgs) bashInteractive kubectl nil waypoint pebble jq
               e2fsprogs coreutils libvirt qemu virt-viewer tailscale;
               inherit (stablePkgs) terraform;
             };
@@ -176,7 +176,7 @@
           builder = pkgs.mkShell {
             name = "builder";
             packages = attrValues {
-              inherit (pkgs) nil coreutils e2fsprogs;
+              inherit (pkgs) nil coreutils e2fsprogs bashInteractive;
             };
             shellHook = (if pkgs.system == "aarch64-darwin" then ''
               nix build .#darwinConfigurations.k3s-paas-host.system
