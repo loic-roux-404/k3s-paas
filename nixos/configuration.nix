@@ -18,7 +18,7 @@ in {
 
   boot.kernelPackages = pkgs.linuxPackages_latest;
   fileSystems."/".autoResize = true;
-  #boot.loader.systemd-boot.consoleMode = "0";
+  boot.loader.systemd-boot.consoleMode = "max";
 
   system.stateVersion = "23.05";
 
@@ -34,7 +34,6 @@ in {
     openssh = {
       enable = true;
       settings = {
-        StreamLocalBindUnlink = "yes";
         # Allow forwarding ports to everywhere
         GatewayPorts = "clientspecified";
         PasswordAuthentication = lib.mkForce false;
@@ -64,7 +63,7 @@ in {
 
   networking = {
     hostName = "k3s-paas";
-    #useNetworkd = true;
+    useNetworkd = true;
     useDHCP = false;
     firewall = {
       enable = true;
@@ -72,23 +71,23 @@ in {
     };
   };
 
-  # home-manager.useGlobalPkgs = true;
-  # home-manager.useUserPackages = true;
-  # home-manager.users.${config.k3s-paas.user.name} = {
-  #   xdg.enable = true;
-  #   home.stateVersion = "23.11";
-  #   home.file.".bashrc".source = lib.mkForce ./bashrc;
-  #   home.file.".inputrc".source = ./inputrc;
-  #   home.sessionVariables = {
-  #     EDITOR = "vim";
-  #     PAGER = "less -FirSwX";
-  #   };
-  #   programs.bash = {
-  #     enable = true;
-  #     historyControl = [ "ignoredups" "ignorespace" ];
-  #     initExtra = "/home/${config.k3s-paas.user.name}/bashrc";
-  #   };
-  # };
+  home-manager.useGlobalPkgs = true;
+  home-manager.useUserPackages = true;
+  home-manager.users.${config.k3s-paas.user.name} = {
+    xdg.enable = true;
+    home.stateVersion = "23.05";
+    home.file.".bashrc".source = lib.mkForce ./bashrc;
+    home.file.".inputrc".source = ./inputrc;
+    home.sessionVariables = {
+      EDITOR = "vim";
+      PAGER = "less -FirSwX";
+    };
+    programs.bash = {
+      enable = true;
+      historyControl = [ "ignoredups" "ignorespace" ];
+      initExtra = "/home/${config.k3s-paas.user.name}/bashrc";
+    };
+  };
 
   environment = {
     shells = [ pkgs.bashInteractive ];
@@ -115,11 +114,14 @@ in {
 
   security.sudo.wheelNeedsPassword = false;
 
+  services.getty.autologinUser = config.k3s-paas.user.name;
+
   users = {
     defaultUserShell = pkgs.bashInteractive;
     allowNoPasswordLogin = true;
     users = {
       ${config.k3s-paas.user.name} = {
+        password = config.k3s-paas.user.password;
         isNormalUser = true;
         extraGroups = [ "wheel" "networkmanager" ];
         openssh = {
@@ -130,6 +132,17 @@ in {
           };
         };
       };
+    };
+  };
+
+  systemd.network.networks = {
+    "10-dhcp" = {
+      matchConfig.Name = "eth*";
+      networkConfig = {
+        DHCP = "ipv4";
+        IPv6AcceptRA = true;
+      };
+      linkConfig.RequiredForOnline = "routable";
     };
   };
 

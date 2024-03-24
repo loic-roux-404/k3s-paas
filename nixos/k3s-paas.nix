@@ -21,6 +21,12 @@
       description = "User name";
     };
 
+    user.password = lib.mkOption {
+      default = "$6$zizou$reVO3q7LFsUq.GT5P5pYFFcpxCo7eTRT5yJTD.gVoOy/FSzHEtXdofvZ7E04Rej.jiQHKaWJB0Qob5FHov1WU/";
+      type = lib.types.str;
+      description = "User password";
+    };
+
     user.key = lib.mkOption {
       default = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIC94/4uRn429xMGLFWZMyJWlhb5D0L3EoO8HxzN4q1ps loic@Windows-8-Phone.local";
       type = lib.types.str;

@@ -12,3 +12,18 @@ variable "port_mappings" {
 variable "qemu_network_interface" {
   default = "en0"
 }
+
+variable "vm_size" {
+  description = "vm size in MB"
+  default = 8092
+}
+
+variable "debug" {
+  type = bool
+  default = false
+}
+
+variable "darwin" {
+  type = bool
+  default = true
+}

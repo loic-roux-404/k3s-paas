@@ -54,7 +54,9 @@ terraform apply -auto-approve
 ```
 
 
-## Virst Cheat Sheet
+## Cheat Sheet
+
+### Libvirt
 
 Undefine pool :
 
@@ -66,4 +68,23 @@ Undefine vm to avoid conflicts :
 
 ```bash
 virsh -c qemu:///system undefine --nvram vm1
+```
+
+Open console :
+
+```bash
+virsh -c qemu:///system console vm1
+```
+
+Exit with `Ctrl + +` or `Ctrl + ]` on linux.
+
+> See [this SO thread](https://superuser.com/questions/637669/how-to-exit-a-virsh-console-connection#:~:text=ctrl%20%2B%20alt%20%2B%206%20(Mac)) if you keep struggling.
+
+
+### Openssl
+
+Generate a sha512crypt password :
+
+```bash
+openssl passwd -salt zizou -6 zizou420!
 ```

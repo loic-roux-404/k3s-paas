@@ -20,15 +20,4 @@
   virtualisation.vlans = [ 1 ];
 
   services.getty.autologinUser = config.k3s-paas.user.name;
-
-  systemd.network.networks = {
-    "10-dhcp" = {
-      matchConfig.Name = "eth*";
-      networkConfig = {
-        DHCP = "ipv4";
-        IPv6AcceptRA = true;
-      };
-      linkConfig.RequiredForOnline = "routable";
-    };
-  };
 }
