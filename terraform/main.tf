@@ -8,7 +8,7 @@ locals {
 }
 
 module "pebble" {
-  source = "pebble"
+  source = "./pebble"
   enable = local.cert_manager_acme_ca_url != null
 }
 

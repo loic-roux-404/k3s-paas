@@ -122,5 +122,5 @@ variable "k3s_client_location" {
 }
 
 variable "vm_ip" {
-  default = "192.168.31.69"
+  default = "localhost"
 }
