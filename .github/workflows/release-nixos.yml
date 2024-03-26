@@ -26,37 +26,18 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - name: Setup `packer`
-        uses: hashicorp/setup-packer@main
-        id: setup
+
+      - uses: cachix/install-nix-action@v25
         with:
-          version: "1.8.6"
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set outputs
         id: vars
         run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
-      - name: Run `packer init`
-        id: init
-        run: "packer init ubuntu.pkr.hcl"
-        working-directory: packer
-
-      - name: Run `packer build`
-        run: >-
-          packer build -var-file "$(uname -ms | tr ' ' '-')-host.hcl" \
-            ubuntu.pkr.hcl
-        working-directory: packer
-        env:
-          PACKER_LOG: 1
-          PACKER_LOG_PATH: packer.log
-
-      - name: Upload packer.log on failure
-        if: failure()
-        uses: actions/upload-artifact@v3
-        with:
-          name: packer.log
-          path: packer/packer.log
-          retention-days: 14
+      - name: Build
+        id: build
+        run: nix build .#nixosConfigurations.aarch64-darwin.default --system 'aarch64-linux'
           
       - name: Release
         uses: softprops/action-gh-release@v1
@@ -65,5 +46,5 @@ jobs:
           token: "${{ secrets.GITHUB_TOKEN }}"
           generate_release_notes: true
           files: |
-            packer/.qemu-vm/ubuntu-jammy-22.04.2.qcow2
+            result/
             packer/.qemu-vm/SHA256SUMS
