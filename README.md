@@ -20,8 +20,10 @@ One liner to set up darwin and build the system :
 
 ```bash
 cd terraform
-nix develop .#builder --command nix build .#nixosConfigurations.default --system 'aarch64-linux' --max-jobs 8 --refresh
+nix develop .#builder --command nix build .#nixosConfigurations.aarch64-darwin.default --system 'aarch64-linux' --max-jobs 8 --refresh
 ```
+
+> Supported systems are `aarch64-linux`, `x86_64-linux`, `aarch64-darwin` and `x86_64-darwin`.
 
 This starts dnsmasq in background, you might need to force a refresh of the dns cache :
 

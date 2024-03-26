@@ -74,7 +74,7 @@
       };
 
       nixosModules = {
-        commin = srvos.nixosModules.common;
+        common = srvos.nixosModules.common;
         server = srvos.nixosModules.server;
         home-manager = inputs.home-manager.nixosModules.home-manager;
         configuration = ./nixos/configuration.nix;
@@ -128,13 +128,6 @@
           system = "aarch64-linux";
         };
 
-        qemu-aarch64 = self.nixosConfigurations.qcow-aarch64.override {
-          modules = attrValues self.nixosModules ++ [
-            ./nixos/qemu.nix
-          ];
-          format = "vm-nogui";
-        };
-
         docker-x86_64-linux = makeOverridable nixos-generators.nixosGenerate {
           system =  "x86_64-linux";
           modules = attrValues self.nixosModules ++ [ 
@@ -148,14 +141,48 @@
         };
       };
 
-    } // flake-utils.lib.eachDefaultSystem (system: {
+    } // flake-utils.lib.eachDefaultSystem (system: rec {
       # Re-export `nixpkgs-stable` with overlays.
       # This is handy in combination with setting `nix.registry.my.flake = inputs.self`.
       # Allows doing things like `nix run my#prefmanager -- watch --all`
       legacyPackages = import inputs.nixpkgs-srvos (nixpkgsDefaults // { inherit system; });
       stableLegacyPackages = import inputs.nixpkgs-stable (nixpkgsDefaults // { inherit system; });
 
-      # Development shells ----------------------------------------------------------------------{{{
+      nixosConfigurations = rec {
+        default = qcow;
+
+        qcow = makeOverridable nixos-generators.nixosGenerate {
+          system = builtins.replaceStrings ["darwin"] ["linux"] system;
+          modules = attrValues self.nixosModules;
+          format = "qcow";
+        };
+
+        contabo = self.nixosConfigurations.${system}.qcow.override {
+          modules = attrValues self.nixosModules ++ [
+            ./nixos/contabo.nix
+          ];
+        };
+
+        vm-nogui = self.nixosConfigurations.${system}.qcow.override {
+          modules = attrValues self.nixosModules ++ [
+            ./nixos/qemu.nix
+            {
+              virtualisation.host.pkgs = self.legacyPackages.${system};
+              virtualisation.vlans = [ 1 ];
+            }
+          ];
+          format = "vm-nogui";
+        };
+
+        docker = self.nixosConfigurations.${system}.qcow.override {
+          modules = attrValues self.nixosModules ++ [ 
+            ./nixos/docker.nix
+          ];
+          format = "docker";
+        };
+      };
+
+      # Development shells
       # Shell environments for development
       # With `nix.registry.my.flake = inputs.self`, development shells can be created by running,
       # e.g., `nix develop my#python`.

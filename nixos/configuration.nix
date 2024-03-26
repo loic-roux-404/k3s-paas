@@ -118,8 +118,6 @@ in {
 
   security.sudo.wheelNeedsPassword = false;
 
-  services.getty.autologinUser = config.k3s-paas.user.name;
-
   users = {
     defaultUserShell = pkgs.bashInteractive;
     allowNoPasswordLogin = true;
@@ -140,6 +138,7 @@ in {
   };
 
   networking.networkmanager.enable = true;
+  networking.usePredictableInterfaceNames = true;
   systemd.network = {
     enable = true;
     wait-online.anyInterface = true;

@@ -11,8 +11,5 @@
 
   swapDevices = [ ];
 
-  virtualisation.host.pkgs = pkgs;
-  virtualisation.vlans = [ 1 ];
-
   services.getty.autologinUser = config.k3s-paas.user.name;
 }
