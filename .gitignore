@@ -8,3 +8,13 @@ charts/**/*.tgz
 site
 # helm charts index file
 index.yaml
+*.qcow2
+.direnv
+result
+core
+keys
+*.log
+xchg/
+!xchg/.gitkeep
+libvirt-nixos-pool/
+!libvirt-nixos-pool/.gitkeep

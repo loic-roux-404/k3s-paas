@@ -1,0 +1,26 @@
+odr:
+  image:
+    repository: "ghcr.io/hashicorp/waypoint/alpha"
+    tag: "c0f0e03b1"
+server:
+  image:
+    repository: "ghcr.io/hashicorp/waypoint/alpha-odr"
+    tag: "c0f0e03b1"
+  runArgs: ["-vvv"]
+  cert:
+    secretName: ${waypoint_hostname}-tls
+ui:
+  service:
+    type: NodePort
+  ingress:
+    enabled: true
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-acme-issuer
+      kubernetes.io/ingress.class: "${waypoint_k8s_ingress_class}"
+    hosts:
+      - host: "${waypoint_hostname}"
+        paths: ["/"]
+    tls:
+      - hosts:
+          - "${waypoint_hostname}"
+        secretName: ${waypoint_hostname}-tls

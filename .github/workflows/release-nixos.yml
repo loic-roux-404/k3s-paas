@@ -1,0 +1,50 @@
+name: Release Packer image
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'playbook/**.yml'
+      - '!**.md'
+      - '!playbook/roles/waypoint/molecule/**'
+      - 'packer/**'
+      - .github/workflows/release-packer.yml
+
+permissions:
+  contents: write
+  discussions: write
+
+jobs:
+  gh-release-packer:
+    runs-on: macos-latest
+    name: Run Packer
+    env:
+      PKR_VAR_ssh_password: ${{ secrets.PKR_VAR_SSH_PASSWORD }}
+      PKR_VAR_ssh_password_hash: ${{ secrets.PKR_VAR_SSH_PASSWORD_HASH }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - uses: cachix/install-nix-action@v25
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set outputs
+        id: vars
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Build
+        id: build
+        run: nix build .#nixosConfigurations.aarch64-darwin.default --system 'aarch64-linux'
+          
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ubuntu-jammy-${{ steps.vars.outputs.sha_short }}
+          token: "${{ secrets.GITHUB_TOKEN }}"
+          generate_release_notes: true
+          files: |
+            result/
+            packer/.qemu-vm/SHA256SUMS
