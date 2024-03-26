@@ -64,6 +64,13 @@
     # https://github.com/NixOS/nix/issues/7273
     auto-optimise-store = false;
   };
+
+  nix.gc = {
+    automatic = true;
+    dates = "weekly";
+    options = "--delete-older-than 5d";
+  };
+  
   nix.linux-builder.enable = true;
   nix.linux-builder.maxJobs = 8;
   nix.linux-builder.ephemeral = true;

@@ -7,6 +7,8 @@
 
 ### Setup (Darwin)
 
+> Note: You need bash v4 on your system : `brew install bash`
+
 Start builder environment setting up nix.conf, darwin services, packages and linux builder vm :
 
 ```bash

@@ -114,7 +114,7 @@
 
       # NixOS ----------------------------------------------------------------------------------{{{
       nixosConfigurations = rec {
-        default = qemu-aarch64;
+        default = qcow-aarch64;
 
         qcow-x86_64-linux = makeOverridable nixos-generators.nixosGenerate {
           system = "x86_64-linux";
@@ -168,7 +168,7 @@
             name = "default";
             packages = attrValues {
               inherit (pkgs) bashInteractive kubectl nil waypoint pebble jq
-              e2fsprogs coreutils libvirt qemu virt-viewer tailscale;
+              e2fsprogs coreutils libvirt qemu tailscale;
               inherit (stablePkgs) terraform;
             };
           };

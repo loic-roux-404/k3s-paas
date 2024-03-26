@@ -13,10 +13,9 @@ provider "libvirt" {
 
 locals {
   port_mappings = join(",", [for k, v in var.port_mappings : "hostfwd=tcp::${k}-:${v}"])
-  debug_cmdline = var.debug ? ["-serial", "mon:stdio"] : []
   darwin_cmdline = var.darwin ? [
-    "-netdev", "vmnet-bridged,id=bridge.0,ifname=${var.qemu_network_interface}",
-    "-device", "virtio-net-pci,netdev=bridge.0,addr=0x9"
+    "-netdev", "vmnet-shared,id=shared.0",
+    "-device", "virtio-net-pci,netdev=shared.0,addr=0x9,mac=de:ad:be:ef:00:01"
   ] : []
 }
 
@@ -82,8 +81,7 @@ resource "libvirt_domain" "machine" {
         "-netdev", "user,id=user.0,${local.port_mappings}",
         "-net", "nic,netdev=user.0,model=virtio,addr=0x8",
         ],
-        local.darwin_cmdline,
-        local.debug_cmdline
+        local.darwin_cmdline
       )
     })
   }

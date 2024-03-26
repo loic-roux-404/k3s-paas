@@ -9,11 +9,6 @@
   boot.kernelModules = [ ];
   boot.extraModulePackages = [ ];
 
-  fileSystems."/boot" =
-    { device = "/dev/disk/by-label/boot";
-      fsType = "vfat";
-    };
-
   swapDevices = [ ];
 
   virtualisation.host.pkgs = pkgs;

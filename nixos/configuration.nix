@@ -18,7 +18,12 @@ in {
 
   boot.kernelPackages = pkgs.linuxPackages_latest;
   fileSystems."/".autoResize = true;
-  boot.loader.systemd-boot.consoleMode = "max";
+  fileSystems."/boot" =
+    { device = "/dev/disk/by-label/boot";
+      fsType = "vfat";
+    };
+
+  boot.loader.systemd-boot.consoleMode = "auto";
 
   system.stateVersion = "23.05";
 
@@ -57,8 +62,6 @@ in {
       ];
     };
   };
-
-  systemd.network.enable = true;
 
   services.fail2ban.enable = true;
 
@@ -136,14 +139,19 @@ in {
     };
   };
 
-  systemd.network.networks = {
-    "10-dhcp" = {
-      matchConfig.Name = "eth*";
-      networkConfig = {
-        DHCP = "ipv4";
-        IPv6AcceptRA = true;
+  networking.networkmanager.enable = true;
+  systemd.network = {
+    enable = true;
+    wait-online.anyInterface = true;
+    networks = {
+      "10-dhcp" = {
+        matchConfig.Name = "eth*";
+        networkConfig = {
+          DHCP = "ipv4";
+          IPv6AcceptRA = true;
+        };
+        linkConfig.RequiredForOnline = "routable";
       };
-      linkConfig.RequiredForOnline = "routable";
     };
   };
 
