@@ -112,21 +112,26 @@
         };
       };
 
-    colmena = {
-      meta = {
-        nixpkgs = import inputs.nixpkgs-stable { system ="x86_64-linux"; };
+      colmena = {
+        meta.nixpkgs = import inputs.nixpkgs-stable {
+          inherit (nixpkgsDefaults) config;
+          system = "aarch64-linux";
+        };
+        k3s-paas-master = attrValues self.nixosModules ++ [
+          ./nixos-nodes/k3s-paas-master.nix
+        ];
+        k3s-paas-agent = self.colmena.k3s-paas-master ++ [
+          ./nixos-nodes/k3s-paas-agent.nix
+        ];
+        k3s-paas-master-contabo = self.colmena.k3s-paas-master ++ [
+          ./nixos/contabo.nix
+          ./nixos-nodes/contabo-master.nix
+        ];
+        k3s-paas-agent-contabo = self.colmena.k3s-paas-agent ++ [
+          ./nixos/contabo.nix
+          ./nixos-nodes/contabo-agent.nix
+        ];
       };
-
-      k3s-paas-master = [
-        ./nixos-nodes/k3s-paas-master.nix
-        ./nixos-options/k3s-paas.nix
-      ];
-
-      k3s-paas-agent = [
-        ./nixos-nodes/k3s-paas-agent.nix
-        ./nixos-options
-      ];
-    };
 
     } // flake-utils.lib.eachDefaultSystem (system: 
     let
@@ -145,7 +150,9 @@
 
         qcow = makeOverridable nixos-generators.nixosGenerate {
           system = linux;
-          modules = attrValues self.nixosModules;
+          modules = attrValues self.nixosModules ++ [
+            ./nixos/qcow-compressed.nix
+          ];
           format = "qcow";
           specialArgs = {
             inherit stableLegacyPackages;
@@ -159,12 +166,14 @@
         contabo = self.nixosConfigurations.${system}.qcow.override {
           modules = attrValues self.nixosModules ++ [
             ./nixos/contabo.nix
+            ./nixos/qcow-compressed.nix
           ];
         };
 
         container = self.nixosConfigurations.${system}.qcow.override {
           modules = attrValues self.nixosModules ++ [ 
             ./nixos/docker.nix
+            ./nixos/qcow-compressed.nix
           ];
           format = "docker";
         };
@@ -186,7 +195,7 @@
               docker-client kubectl kubernetes-helm libvirt qemu
               tailscale pebble cntb
               nil nix-tree colmena;
-              inherit (stablePkgs) terraform waypoint;
+              inherit (stablePkgs) nix terraform waypoint;
             };
             shellHook = ''
               export DOCKER_HOST=tcp://127.0.0.1:2375
