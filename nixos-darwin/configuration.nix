@@ -12,7 +12,7 @@
   services.dnsmasq = {
     enable = true;
     addresses = {
-      ".${config.k3s-paas.dns.name}" = config.k3s-paas.dns.dest-ip;
+      ".${config.k8s-paas.dns.name}" = config.k8s-paas.dns.dest-ip;
     };
   };
   services.tailscale.enable = true;
@@ -85,7 +85,7 @@
       externalAccountBindingRequired = false;
     };
   };
-  environment.etc."resolver/${config.k3s-paas.dns.name}".text = "nameserver ${config.k3s-paas.dns.dest-ip}";
+  environment.etc."resolver/${config.k8s-paas.dns.name}".text = "nameserver ${config.k8s-paas.dns.dest-ip}";
   nix.settings = {
     trusted-users = [ "staff" "admin" "nixbld" ];
     keep-derivations = true;

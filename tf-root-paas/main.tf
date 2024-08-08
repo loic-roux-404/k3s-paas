@@ -23,7 +23,8 @@ module "cilium" {
   count        = var.k8s_ingress_class == "cilium" ? 1 : 0
   source       = "../tf-modules-k8s/cilium"
   k3s_port     = var.k3s_port
-  node_name    = var.node_name
+  k3s_host     = var.k3s_endpoint
+  node_name    = var.k3s_node_name 
 }
 
 module "metrics_server" {

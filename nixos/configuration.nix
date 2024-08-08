@@ -6,7 +6,7 @@
   ...
 }:
 
-with config.k3s-paas;
+with config.k8s-paas;
 
 let
   certs = [ ../nixos-darwin/pebble/cert.crt ];
@@ -19,6 +19,7 @@ let
       keys = [ user.key ];
     };
   };
+  k3sPkg = oldLegacyPackages.k3s_1_27;
 in {
 
   fileSystems."/" = {
@@ -49,39 +50,22 @@ in {
   i18n.defaultLocale = "en_US.UTF-8";
 
   programs.ssh.package = pkgs.openssh_hpn;
+  services.openssh = {
+    enable = true;
+    settings = {
+      # Allow forwarding ports to everywhere
+      GatewayPorts = "clientspecified";
+      PasswordAuthentication = lib.mkForce false;
+      StreamLocalBindUnlink = lib.mkForce "yes";
+      PermitRootLogin = "no";
+    };
+  };
 
-  services = {
-    openssh = {
-      enable = true;
-      settings = {
-        # Allow forwarding ports to everywhere
-        GatewayPorts = "clientspecified";
-        PasswordAuthentication = lib.mkForce false;
-        StreamLocalBindUnlink = lib.mkForce "yes";
-        PermitRootLogin = "no";
-      };
-    };
-    tailscale = {
-      enable = true;
-      extraUpFlags = lib.mkDefault ["--ssh"];
-      permitCertUid = user.name;
-    };
-    k3s = {
-      enable = lib.mkDefault false;
-      role = "server";
-      extraFlags = lib.strings.concatStringsSep " " (
-        map (service: "--disable=${service}") k3s.disableServices
-        ++ k3s.serverExtraArgs
-        ++ [
-          "--flannel-backend=none"
-          "--disable-network-policy"
-          "--disable-kube-proxy"
-          "--write-kubeconfig-mode=400"
-        ]
-      );
-    };
-
-    fail2ban.enable = true;
+  services.tailscale = {
+    enable = true;
+    extraUpFlags = lib.mkDefault ["--ssh"];
+    permitCertUid = user.name;
+    useRoutingFeatures = "both";
   };
 
   systemd.services.tailscaled-autoconnect = lib.mkIf (config.services.tailscale.authKeyFile != null &&
@@ -92,26 +76,28 @@ in {
     };
   };
 
-  systemd.user.services.nixos-activation = {
-    after = ["tailscaled.service" "tailscaled-autoconnect.service"];
+  systemd.services.k3s.serviceConfig.Environment = "PATH=${pkgs.tailscale}/bin";
+  services.k3s = {
+    enable = lib.mkDefault false;
+    role = "server";
+    package = k3sPkg;
+    extraFlags = lib.strings.concatStringsSep " " (
+      map (service: "--disable=${service}") k8s.disableServices
+      ++ k8s.serverExtraArgs
+      ++ [
+        "--flannel-backend=none"
+        "--disable-kube-proxy"
+        "--disable-network-policy"
+        #"--egress-selector-mode=disabled"
+      ]
+    );
   };
 
-  system.activationScripts.checkTailscaleStatus = lib.mkIf (config.networking.hostName != "" &&
-    config.services.tailscale.enable &&
-    config.services.tailscale.authKeyFile != null
-  ) { text = ''
-      #!/usr/bin/env bash
-      set -euo pipefail
-
-      ${pkgs.tailscale}/bin/tailscale ping -c 1 "${config.networking.hostName}" || \
-        ${pkgs.systemd}/bin/systemctl restart tailscaled.service; \
-        ${pkgs.systemd}/bin/systemctl restart tailscaled-autoconnect.service || true;
-    ''; 
-  };
+  services.fail2ban.enable = true;
 
   home-manager.useGlobalPkgs = true;
   home-manager.useUserPackages = true;
-  home-manager.users.${config.k3s-paas.user.name} = {
+  home-manager.users.${config.k8s-paas.user.name} = {
     xdg.enable = true;
     home.stateVersion = "24.05";
     home.sessionVariables = {
@@ -120,6 +106,7 @@ in {
     home.shellAliases = {
       kubectl = "sudo kubectl";
       helm = "sudo -E helm";
+      k-ks = "sudo -E kubectl -n kube-system";
     };
     programs.bash = {
       enable = true;
@@ -127,7 +114,7 @@ in {
     };
   };
 
-  system.activationScripts.k3sCerts.text = (pkgs.callPackage ./install-k3s-manifest.nix { 
+  system.activationScripts.k8sCerts.text = (pkgs.callPackage ./install-k3s-manifest.nix { 
     inherit pkgs;
     file = certManagerCrds;
   }).script;
@@ -153,7 +140,7 @@ in {
       dnsutils
       jq
       wget
-      k3s
+      k3sPkg
       kubectl
       kubernetes-helm
       oldLegacyPackages.waypoint
@@ -224,21 +211,17 @@ in {
     useNetworkd = true;
     useDHCP = true;
     firewall = {
-      checkReversePath = false;
-      trustedInterfaces = [ "tailscale0" "cilium_host" "cilium_vxlan" "cilium_net" ];
-      enable = true;
-      allowedTCPPorts = lib.mkDefault [ 80 443 22 ];
+      trustedInterfaces = [ "tailscale0" ];
+      allowedTCPPorts = lib.mkDefault [ 80 443 22 4240 ];
       allowedUDPPorts = [ config.services.tailscale.port ];
     };
-    nftables.enable = true;
+    # Looks its not ready to work along cilium and k3s
+    nftables.enable = false;
     networkmanager.enable = false;
     usePredictableInterfaceNames = true;
   };
 
-  boot.kernel.sysctl = {
-    "net.ipv4.conf.lxc*.rp_filter" = 0;
-    "net.ipv4.conf.cilium_*.rp_filter" = 0;
-  };
+  boot.kernel.sysctl."net.ipv4.ip_forward" = 1;
 
   security.pki.certificateFiles = certs;
 

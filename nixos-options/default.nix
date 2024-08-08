@@ -1,7 +1,7 @@
 { lib, ... }:
 
 {
-  options.k3s-paas = {
+  options.k8s-paas = {
 
     certs = lib.mkOption {
       default = [{
@@ -13,9 +13,9 @@
     };
 
     dns.name = lib.mkOption {
-      default = "k3s.test";
+      default = "k8s.test";
       type = lib.types.str;
-      description = "hostname for k3s-paas";
+      description = "hostname for k8s-paas";
     };
 
     dns.dest-ip = lib.mkOption {
@@ -39,22 +39,22 @@
     user.key = lib.mkOption {
       default = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIC94/4uRn429xMGLFWZMyJWlhb5D0L3EoO8HxzN4q1ps loic@Windows-8-Phone.local";
       type = lib.types.str;
-      description = "SSH public key for k3s-paas.";
+      description = "SSH public key for k8s-paas.";
     };
 
-    k3s.disableServices = lib.mkOption {
-      default = ["traefik" "metrics-server"];
+    k8s.disableServices = lib.mkOption {
+      default = ["traefik" "metrics-server" "servicelb"];
       type = lib.types.listOf lib.types.str;
-      description = "Disable k3s services eg: traefik,servicelb";
+      description = "Disable k8s services eg: traefik,servicelb";
     };
 
-    k3s.serverExtraArgs = lib.mkOption {
+    k8s.serverExtraArgs = lib.mkOption {
       default = [];
       type = lib.types.listOf lib.types.str;
-      description = "Extra arguments for k3s server";
+      description = "Extra arguments for k8s server";
     };
 
-    k3s.token = lib.mkOption {
+    k8s.token = lib.mkOption {
       type = lib.types.str;
       description = "K3s token";
       default = "";
@@ -63,7 +63,7 @@
     dex.dexClientId = lib.mkOption {
       type = lib.types.str;
       description = "Client ID for Dex";
-      default = "dex-k3s-paas";
+      default = "dex-k8s-paas";
     };
 
   };

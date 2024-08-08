@@ -25,16 +25,20 @@ resource "helm_release" "cilium" {
   create_namespace = true
 
   values = [
-    yamlencode(merge(var.cilium_helm_values, {
-      k8sServiceHost = local.node_internal_ip
-      k8sServicePort = var.k3s_port
+    yamlencode(merge({
+      global = {}
+      ipam = {}
+      cluster = {
+        name = var.node_name
+      }
+      k8sServiceHost = var.k3s_host
+      k8sServicePort = local.node_internal_ip
       ipam = {
         operator = {
           clusterPoolIPv4PodCIDRList = data.kubernetes_nodes.selected.nodes[0].spec[0].pod_cidrs
-          #clusterPoolIPv6PodCIDRList = data.kubernetes_nodes.selected.nodes[0].spec[0].pod_cidrs
         }
       }
-    }))
+    }, var.cilium_helm_values))
   ]
 }
 

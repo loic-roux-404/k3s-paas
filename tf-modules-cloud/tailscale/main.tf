@@ -2,9 +2,9 @@ data "tailscale_devices" "already_present" {
   name_prefix = var.node_hostname
 }
 
-locals  {
+locals {
   already_present = length(data.tailscale_devices.already_present.devices) > 0
-  node_fqdn = "${var.node_hostname}.${var.tailscale_tailnet}"
+  node_fqdn       = "${var.node_hostname}.${var.tailscale_tailnet}"
 }
 
 data "tailscale_device" "trusted_device" {
@@ -60,6 +60,12 @@ resource "tailscale_acl" "as_json" {
       "tag:k8s-operator" = []
       "tag:k8s"          = ["tag:k8s-operator"]
     }
+    "autoApprovers" : {
+      "routes" : {
+        "10.42.0.0/16" : ["tag:all"],
+        "2001:cafe:42::/56" : ["tag:all"],
+      },
+    },
     grants = [{
       src = ["tag:all"]
       dst = ["tag:k8s-operator"]
@@ -86,25 +92,6 @@ resource "tailscale_tailnet_key" "k3s_paas_node" {
   preauthorized       = true
   description         = "Machine key - presence is ${tostring(local.already_present)}"
   tags                = ["tag:all"]
-}
-
-resource "terraform_data" "destroy_node" {
-  input = {
-    TAILNET             = var.tailscale_tailnet
-    OAUTH_CLIENT_ID     = var.tailscale_oauth_client.id
-    OAUTH_CLIENT_SECRET = var.tailscale_oauth_client.secret
-    NODE_HOSTNAMES = join(",", [
-      var.node_hostname,
-      "k8s-operator-${var.node_hostname}"
-    ])
-  }
-
-  provisioner "local-exec" {
-    when        = destroy
-    environment = self.input
-    on_failure  = fail
-    command     = "${path.module}/delete-node-devices.sh"
-  }
 }
 
 output "node_id" {
